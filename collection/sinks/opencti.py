@@ -1,9 +1,9 @@
-"""Writes a believed observation into OpenCTI as a STIX indicator.
+"""Writes signed observations to OpenCTI as STIX indicators.
 
-The indicatorAdd mutation and IndicatorAddInput fields used below come
-from OpenCTI's own real schema, opencti-platform/opencti-graphql/src/
-modules/indicator/indicator.graphql at tag 7.260914.0, the exact
-release deploy/.env.example pins.
+Implements the SinkConnector protocol to deliver Threat Observations to an
+OpenCTI GraphQL endpoint, creating STIX indicators with a pattern describing
+the observed indicator type and value. Handles TLS verification and includes
+evidence in the indicator's description.
 """
 
 from __future__ import annotations
@@ -17,6 +17,9 @@ from collection.config import (
 )
 from collection.schema import ThreatObservation
 
+# GraphQL mutation to add an indicator to OpenCTI. Comes from the OpenCTI
+# schema at opencti-platform/opencti-graphql/src/modules/indicator/
+# indicator.graphql at tag 7.260914.0.
 _INDICATOR_ADD_MUTATION = """
 mutation IndicatorAdd($input: IndicatorAddInput!) {
   indicatorAdd(input: $input) {
@@ -27,12 +30,27 @@ mutation IndicatorAdd($input: IndicatorAddInput!) {
 
 
 class OpenCtiSinkConnector:
+    """Sends signed observations to OpenCTI as STIX indicators."""
+
     def __init__(self, url: str | None = None, token: str | None = None):
+        """Initializes the connector with OpenCTI credentials.
+
+        Takes optional URL and token for testing; defaults to resolving from
+        environment variables. TLS verification is enabled by default, disabled
+        only if CTI_ALLOW_INSECURE_TLS is set.
+        """
         self._url = url if url is not None else resolve_opencti_url()
         self._token = token if token is not None else resolve_opencti_token()
         self._verify_tls = not resolve_allow_insecure_tls()
 
     def send(self, observation: ThreatObservation) -> None:
+        """Sends an observation to OpenCTI as a STIX indicator.
+
+        Creates an indicator with a STIX pattern matching the observation's
+        indicator type and value, and includes evidence in the description.
+        Raises RuntimeError if OpenCTI returns GraphQL errors or if the HTTP
+        request fails.
+        """
         escaped_value = observation.indicator_value.replace("'", "\\'")
         pattern = f"[ipv4-addr:value = '{escaped_value}']"
         description = (

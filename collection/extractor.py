@@ -1,4 +1,11 @@
-"""Ties a source connector to the Threat Observation sink."""
+"""Connects a source to the observation sink, handling key management and signing.
+
+Takes raw signals from a source connector, builds Threat Observations from them,
+signs each one with this node's Ed25519 key, and appends them as newline-delimited
+JSON to the sink file. Ensures security by creating parent directories only when
+needed, refusing to write through symlinks, and validating the source before
+creating the key or sink.
+"""
 
 from __future__ import annotations
 
@@ -12,11 +19,17 @@ from collection.keys import load_or_create_node_key, node_fingerprint
 from collection.schema import build_and_sign
 from collection.sources.base import SourceConnector
 
+# Sentinel value used to detect when a source yields no signals at all.
 _NO_SIGNAL = object()
 
 
 def run(connector: SourceConnector, sink_path: Path | None = None) -> int:
-    """Processes every signal the connector yields, once. Returns the count written."""
+    """Extracts signals from a source connector and writes signed observations.
+
+    Pulls every signal the connector yields, builds a signed Threat Observation
+    from each, and appends it to the sink file. Returns the count of observations
+    successfully written. Skips any signal that fails to build or serialize.
+    """
     signals = connector.iter_signals()
     # Forces the connector's own safety checks (a generator's body only runs up
     # to its first yield on this first call) to happen before the sink file or

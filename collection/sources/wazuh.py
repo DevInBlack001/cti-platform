@@ -1,10 +1,9 @@
-"""Reads Wazuh's own alerts (via its indexer) and yields RawSignals.
+"""Extracts threat signals from Wazuh alerts via the indexer API.
 
-The /wazuh-alerts-*/_search query shape and field names below were
-confirmed against a real, live Wazuh 4.14.7 indexer. Two real alert
-shapes exist depending on which rule and decoder fired: a Security
-Configuration Assessment alert has no srcip at all (data.sca.*), an SSH
-alert has data.srcip/dstuser/srcport.
+Implements the SourceConnector protocol to query Wazuh's Elasticsearch indexer
+for alerts matching a configured rule severity level, yielding a RawSignal for
+each. Tracks the high water mark to avoid reprocessing alerts on subsequent runs.
+Validates the state file for safety before reading.
 """
 
 from __future__ import annotations
@@ -27,8 +26,11 @@ from collection.config import (
 )
 from collection.sources.base import RawSignal
 
+# Number of alerts to fetch per Elasticsearch query to balance latency and memory.
 _PAGE_SIZE = 500
+# ISO 8601 timestamp for the epoch, used as the initial high water mark.
 _EPOCH_ISO = "1970-01-01T00:00:00.000Z"
+# Maximum bytes to read from the state file to prevent unbounded memory growth.
 _MAX_STATE_FILE_BYTES = 1_000_000
 
 
@@ -37,6 +39,8 @@ class SymlinkStateError(RuntimeError):
 
 
 class WazuhConnector:
+    """Queries Wazuh alerts from its Elasticsearch indexer."""
+
     def __init__(
         self,
         indexer_url: str | None = None,
@@ -45,6 +49,12 @@ class WazuhConnector:
         min_rule_level: int | None = None,
         state_path: Path | None = None,
     ):
+        """Initializes the connector with Wazuh indexer credentials.
+
+        Takes optional parameters for testing; all default to resolving from
+        environment variables. TLS verification is enabled by default, disabled
+        only if CTI_ALLOW_INSECURE_TLS is set.
+        """
         self._indexer_url = (
             indexer_url if indexer_url is not None else resolve_wazuh_indexer_url()
         )
@@ -63,6 +73,13 @@ class WazuhConnector:
         self._verify_tls = not resolve_allow_insecure_tls()
 
     def iter_signals(self) -> Iterator[RawSignal]:
+        """Yields every Wazuh alert since the last run.
+
+        Loads the high water mark from the state file (or uses epoch if none),
+        queries the indexer for alerts above the configured rule level severity,
+        and yields a RawSignal for each alert that has a source IP. Paginates
+        through results and updates the high water mark on completion.
+        """
         since = self._load_high_water_mark()
         newest_seen = since
         search_after = None
@@ -112,6 +129,12 @@ class WazuhConnector:
             self._save_high_water_mark(newest_seen)
 
     def _to_signal(self, alert: dict) -> RawSignal | None:
+        """Converts a Wazuh alert to a RawSignal.
+
+        Returns None if the alert has no source IP (e.g., Security Configuration
+        Assessment alerts). Otherwise extracts the source IP, rule information,
+        and MITRE ATT&CK details into a RawSignal.
+        """
         data = alert.get("data", {})
         source_address = data.get("srcip")
         if not source_address:
@@ -137,11 +160,21 @@ class WazuhConnector:
 
     @staticmethod
     def _parse_timestamp(value: str | None) -> float:
+        """Converts an ISO 8601 timestamp to a UNIX float.
+
+        Returns the current time if the value is missing or empty.
+        """
         if not value:
             return datetime.now(tz=timezone.utc).timestamp()
         return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
 
     def _load_high_water_mark(self) -> str:
+        """Loads the timestamp of the last alert processed.
+
+        Validates the state file path for safety before reading. Returns epoch
+        if the state file does not exist. Raises SymlinkStateError if the path
+        is a symlink.
+        """
         if self._state_path.is_symlink():
             raise SymlinkStateError(
                 f"{self._state_path} is a symlink, refusing to read it"
@@ -154,6 +187,12 @@ class WazuhConnector:
         return json.loads(contents).get("last_seen", _EPOCH_ISO)
 
     def _save_high_water_mark(self, timestamp: str) -> None:
+        """Persists the timestamp of the last alert processed.
+
+        Atomically writes a new state file (via create + exclusive open) rather
+        than truncating an existing one, to avoid partial writes. Creates the
+        parent directory if needed.
+        """
         self._state_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         if self._state_path.exists():
             self._state_path.unlink()

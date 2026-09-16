@@ -1,4 +1,10 @@
-"""Runs one pass: FLOD's database in, signed Threat Observations out."""
+"""Entry point for the collection pipeline.
+
+Orchestrates a single collection pass: locate the FLOD database, connect to it,
+extract signals, build and sign observations, and write them to the sink file.
+Returns 0 on success, 1 if configuration is missing or the database is
+inaccessible.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +16,11 @@ from collection.sources.flod import FlodConnector, SymlinkDatabaseError
 
 
 def main() -> int:
+    """Executes one collection pass.
+
+    Returns 0 if observations were written, 1 if configuration is missing or
+    the database cannot be accessed (symlink, missing, or permission denied).
+    """
     try:
         db_path = resolve_flod_db_path().value
     except ConfigNotFoundError as error:
