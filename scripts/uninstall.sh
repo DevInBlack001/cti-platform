@@ -42,6 +42,10 @@ if [ "$REMOVE_KEYS" = true ]; then
 from collection.config import resolve_key_dir
 print(resolve_key_dir().value)
 ")"
+    if [ -z "$KEY_DIR" ] || [ "$KEY_DIR" = "/" ] || [ "$KEY_DIR" = "$HOME" ]; then
+        error "Refusing to remove suspicious key directory: '$KEY_DIR'"
+    fi
+
     if [ -n "$KEY_DIR" ] && [ -d "$KEY_DIR" ]; then
         rm -rf "$KEY_DIR"
         warn "Removed $KEY_DIR. This node will generate a new identity next run."
