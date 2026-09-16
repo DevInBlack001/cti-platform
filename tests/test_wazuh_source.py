@@ -166,3 +166,19 @@ def test_refuses_to_read_a_symlinked_state_file(tmp_path: Path):
 
     with pytest.raises(SymlinkStateError):
         list(connector.iter_signals())
+
+
+def test_refuses_to_read_a_dangling_symlinked_state_file(tmp_path: Path):
+    nonexistent_file = tmp_path / "nonexistent.json"
+    state_path = tmp_path / "state.json"
+    state_path.symlink_to(nonexistent_file)
+
+    connector = WazuhConnector(
+        indexer_url="https://indexer.example",
+        user="admin",
+        password="a-password",
+        state_path=state_path,
+    )
+
+    with pytest.raises(SymlinkStateError):
+        list(connector.iter_signals())

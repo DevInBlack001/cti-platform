@@ -1,10 +1,10 @@
 """Reads Wazuh's own alerts (via its indexer) and yields RawSignals.
 
 The /wazuh-alerts-*/_search query shape and field names below were
-confirmed against a real, live Wazuh 4.14.7 indexer, not assumed from
-documentation. Two real alert shapes exist depending on which rule and
-decoder fired: a Security Configuration Assessment alert has no srcip
-at all (data.sca.*), an SSH alert has data.srcip/dstuser/srcport.
+confirmed against a real, live Wazuh 4.14.7 indexer. Two real alert
+shapes exist depending on which rule and decoder fired: a Security
+Configuration Assessment alert has no srcip at all (data.sca.*), an SSH
+alert has data.srcip/dstuser/srcport.
 """
 
 from __future__ import annotations
@@ -142,12 +142,12 @@ class WazuhConnector:
         return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
 
     def _load_high_water_mark(self) -> str:
-        if not self._state_path.exists():
-            return _EPOCH_ISO
         if self._state_path.is_symlink():
             raise SymlinkStateError(
                 f"{self._state_path} is a symlink, refusing to read it"
             )
+        if not self._state_path.exists():
+            return _EPOCH_ISO
         fd = os.open(str(self._state_path), os.O_RDONLY | os.O_NOFOLLOW)
         with os.fdopen(fd, "r") as f:
             contents = f.read(_MAX_STATE_FILE_BYTES)
