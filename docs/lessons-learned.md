@@ -95,6 +95,14 @@ several commits past the last actual release, unreleased, in-progress
 work, so this project's own starting point was reset back to the real
 release before building anything on top of it.
 
+That fork was later dropped entirely, once a closer read of the
+platform's own license file turned up a second, much more restrictive
+license covering a large set of its features, a real distribution risk
+this project's own deployment never actually needed to take on, since
+it had been pulling the plain public Docker image all along rather
+than building from the fork's source. See
+[decision-record.md](decision-record.md) for the full reasoning.
+
 ## The real error was three layers down from the one on screen
 
 Getting OpenCTI itself to actually stay up took four separate rounds of

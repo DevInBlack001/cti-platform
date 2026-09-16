@@ -86,46 +86,63 @@ flowchart TD
     G -.override log.-> M[(Labeled data for retraining the model)]
 ```
 
-## Platform base and technology split
+## This project's own system stands on its own
 
-**Platform: OpenCTI.** [OpenCTI](glossary.md#opencti)
-Community Edition is reused as-is for storage and the browsing interface,
-rather than modified, so the limited build time available goes toward
-this project's own two original pieces: the classifier and the Peer
-Validation Layer.
-[MISP](glossary.md#misp)
-was considered as an alternative platform first; OpenCTI's more active
-development and its way of storing relationships between records was
-judged the better fit, though a couple of MISP's own features (marking
-independent sightings of the same indicator, and built-in message
-signing) were kept in mind as useful reference points.
+Every layer above (collection, extraction, federation, peer validation,
+local action) is this project's own standalone set of programs, run by
+each node. None of it needs any particular downstream platform to exist,
+and nothing here loads into, or is loaded by, someone else's software.
+The pieces this project owns talk to whatever storage/browsing platform
+a node chooses the same way the Local Collection Layer talks to FLOD:
+through a small, swappable interface, not a hard dependency.
 
-**Peer validation layer: Rust.** Built as its own separate program, not
-inserted into OpenCTI's own code, talking to OpenCTI over
-*[GraphQL](glossary.md#graphql)*.
-Rust was chosen for this piece because its networking and
-cryptographic-signing code benefits from the speed and low-level control
-the language gives.
+- **Reading local data in** uses a *[source connector](glossary.md#source-connector)*.
+  FLOD is the first one; a different kind of local detector, or none at
+  all, plugs into the same interface without touching anything else.
+- **Writing believed results out** uses the same idea in the other
+  direction, a swappable *sink*. [OpenCTI](glossary.md#opencti) is the
+  sink this project has been testing against, used purely for storage
+  and browsing once the Peer Validation Layer has already decided an
+  observation is believed. A different platform, or no platform at all,
+  plugs into the same interface.
 
-**Classifier: Python.** Also its own separate program talking to OpenCTI
-over GraphQL, written in Python for its mature set of machine-learning
-tools.
+This is also why OpenCTI is not forked or vendored into this repository:
+it's an external, separately installed dependency, the same way a
+database would be, not something this project owns a copy of, modifies,
+or redistributes. Anyone running this system (including this project
+itself) installs standard OpenCTI Community Edition from
+[Filigran's own official channel](https://github.com/OpenCTI-Platform/opencti),
+the same way anyone would install any other piece of software this
+project depends on.
 
-Keeping the platform untouched and both original pieces as separate
-programs keeps this project's own work clearly separate from the reused
-platform's code.
+*[MISP](glossary.md#misp)* was considered as an alternative sink before
+settling on OpenCTI for testing; OpenCTI's more active development and
+its way of storing relationships between records was judged the better
+fit, though a couple of MISP's own features (marking independent
+sightings of the same indicator, and built-in message signing) were kept
+in mind as useful reference points.
 
-### Licensing obligations from reusing OpenCTI
+**Peer validation layer: Rust.** Talks to whatever sink is configured
+over *[GraphQL](glossary.md#graphql)* (OpenCTI's own interface, when
+OpenCTI is the sink in use). Rust was chosen for this piece because its
+networking and cryptographic-signing code benefits from the speed and
+low-level control the language gives.
 
-OpenCTI is released under the Apache 2.0 license, which permits reuse and
-modification but comes with a few obligations if any of its own files are
-directly edited: any edited file must say plainly that it was changed, and
-OpenCTI's own copyright and trademark notices must stay in place. New code
-written for this project does not have to use the same license, though
-keeping the whole repository under Apache 2.0 is simpler and is what this
-repository does. In practice: any touched OpenCTI file keeps its original
-license header plus a note of what changed, and OpenCTI and its maker,
-Filigran, are credited here and in the final report.
+**Classifier: Python.** Also its own separate program, written in
+Python for its mature set of machine-learning tools.
+
+### On OpenCTI's own licensing
+
+OpenCTI Community Edition is Apache 2.0. Its public repository also
+contains a separate, larger set of Enterprise Edition features under a
+different, much more restrictive license, gated behind an activation
+key that this project never sets, so those features stay dormant.
+Treating OpenCTI purely as an external, unforked dependency (installed
+by whoever runs this system, straight from Filigran's own official
+channel) keeps this project's own work, and anything built on it, clear
+of that separate license entirely. See
+[decision-record.md](decision-record.md) for the full reasoning behind
+dropping an earlier fork of OpenCTI once this was understood.
 
 ## Why the classifier is trained, not reused from elsewhere
 
