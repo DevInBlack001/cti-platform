@@ -84,6 +84,19 @@ def test_run_creates_the_sinks_parent_directory(tmp_path: Path, monkeypatch):
     assert sink_path.exists()
 
 
+def test_a_valid_but_empty_source_still_creates_the_sink_file(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    written = run(_StubConnector([]), sink_path=sink_path)
+
+    assert written == 0
+    assert sink_path.exists()
+    assert sink_path.read_text() == ""
+
+
 def test_refuses_to_write_through_a_symlinked_sink_path(tmp_path: Path, monkeypatch):
     monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
     sink_dir = tmp_path / "sink_dir"

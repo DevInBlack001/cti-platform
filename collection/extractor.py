@@ -31,15 +31,15 @@ def run(connector: SourceConnector, sink_path: Path | None = None) -> int:
     reporting_node_id = node_fingerprint(private_key)
 
     written = 0
-    if first_signal is _NO_SIGNAL:
-        return written
-
     fd = os.open(
         str(destination),
         os.O_CREAT | os.O_WRONLY | os.O_APPEND | os.O_NOFOLLOW,
         mode=0o600,
     )
     with os.fdopen(fd, "a", encoding="utf-8") as sink_file:
+        if first_signal is _NO_SIGNAL:
+            return written
+
         for signal in itertools.chain([first_signal], signals):
             try:
                 observation = build_and_sign(signal, reporting_node_id, private_key)
