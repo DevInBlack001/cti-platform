@@ -18,6 +18,15 @@ class _StubConnector:
         yield from self._signals
 
 
+class _FailingConnector:
+    """Mirrors a real connector whose safety check raises before it ever
+    yields anything, e.g. FlodConnector against a missing database."""
+
+    def iter_signals(self) -> Iterator[RawSignal]:
+        raise FileNotFoundError("No database found at /nonexistent")
+        yield  # pragma: no cover, makes this function a generator
+
+
 def _signal(address: str) -> RawSignal:
     return RawSignal(
         observed_at=1_700_000_001.0,
@@ -93,6 +102,20 @@ def test_refuses_to_write_through_a_symlinked_sink_path(tmp_path: Path, monkeypa
 
     # The symlink target must not have been written through
     assert other_file.read_text() == "dummy"
+
+
+def test_a_source_that_fails_validation_leaves_no_sink_or_key_behind(
+    tmp_path: Path, monkeypatch
+):
+    key_dir = tmp_path / "keys"
+    monkeypatch.setenv("CTI_KEY_DIR", str(key_dir))
+    sink_path = tmp_path / "observations.ndjson"
+
+    with pytest.raises(FileNotFoundError):
+        run(_FailingConnector(), sink_path=sink_path)
+
+    assert not sink_path.exists()
+    assert not key_dir.exists()
 
 
 def test_sink_file_is_owner_only(tmp_path: Path, monkeypatch):
