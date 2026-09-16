@@ -106,13 +106,17 @@ of this project's limits are in
 
 ## Status
 
-Implementation has started. OpenCTI (Community Edition, an external,
+Implementation is underway. OpenCTI (Community Edition, an external,
 unforked dependency, see [docs/architecture.md](docs/architecture.md))
-is deployed and running healthy in the local test VM (`deploy/`); the
-local collection and extraction pipeline is spec'd and not yet built. See
-[docs/ROADMAP.md](docs/ROADMAP.md) for the build order and current
-phase, and [docs/lessons-learned.md](docs/lessons-learned.md) for what's
-come up along the way.
+is deployed and running healthy in the local test VM (`deploy/`). The
+Local Collection Layer is built and tested: a `collection/` Python
+package reads FLOD's own database, turns each detection into a signed
+Threat Observation, and writes it to a local file, no network code yet.
+Verified against both a test fixture and a real copy of FLOD's live
+database (40,510 real detection rows, every resulting signature
+verified). See [docs/ROADMAP.md](docs/ROADMAP.md) for the build order
+and current phase, and [docs/lessons-learned.md](docs/lessons-learned.md)
+for what's come up along the way.
 
 
 ## Documentation
