@@ -23,6 +23,16 @@ are defined in the [glossary](glossary.md) the first time they appear.
 - Reading list and citation resources gathered by category.
 - Full decision record written; see [decision-record.md](decision-record.md).
 
+**Phase 0.5: OpenCTI stood up (September 2026), ahead of the original timeline.**
+
+Not originally scheduled as its own step (see
+[decision-record.md](decision-record.md) for that gap and why it got
+closed here rather than left implicit). OpenCTI is forked, deployed
+inside the local test VM, and running healthy end to end (platform,
+worker, and the standard connectors, all confirmed reachable over
+HTTP). See [lessons-learned.md](lessons-learned.md) for what it took
+to get there.
+
 
 ## Planned
 

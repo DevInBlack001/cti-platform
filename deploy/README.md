@@ -8,8 +8,15 @@ for any unfamiliar term.
 
 ## Before first run
 
-1. Copy `.env.example` to `.env`.
-2. Fill in every placeholder value in `.env`, generating real secrets as
+1. Make sure the host or VM this runs on has at least 30GB of free disk
+   space, not just free memory. Elasticsearch refuses writes and marks
+   itself unhealthy well before the disk actually fills, and this stack
+   pulls over 9GB of container images before it writes any data of its
+   own. Confirmed working on a 50GB disk / 6GB RAM VM; see
+   [docs/lessons-learned.md](../docs/lessons-learned.md) for what it
+   looked like to hit this the first time.
+2. Copy `.env.example` to `.env`.
+3. Fill in every placeholder value in `.env`, generating real secrets as
    the comments in that file describe. Never commit `.env`, it's
    gitignored on purpose.
 

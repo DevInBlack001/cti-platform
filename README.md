@@ -99,9 +99,9 @@ of this project's limits are in
 
 ## Status
 
-Implementation has started. The OpenCTI platform is forked and its
-deployment is being stood up in a local test VM; the local collection
-and extraction pipeline is spec'd and not yet built. See
+Implementation has started. OpenCTI is forked, deployed, and running
+healthy in the local test VM (`deploy/`); the local collection and
+extraction pipeline is spec'd and not yet built. See
 [docs/ROADMAP.md](docs/ROADMAP.md) for the build order and current
 phase, and [docs/lessons-learned.md](docs/lessons-learned.md) for what's
 come up along the way.

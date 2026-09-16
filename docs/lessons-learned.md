@@ -95,18 +95,58 @@ several commits past the last actual release, unreleased, in-progress
 work, so this project's own starting point was reset back to the real
 release before building anything on top of it.
 
+## The real error was three layers down from the one on screen
+
+Getting OpenCTI itself to actually stay up took four separate rounds of
+diagnosis, each one looking like the real cause until the next layer
+underneath it turned out to be the actual problem:
+
+- **What it looked like:** OpenCTI kept exiting cleanly and restarting,
+  logging search errors against its own database.
+- **First hypothesis, wrong:** looked like Elasticsearch just needed a
+  bigger memory allowance than the resource-constrained 1GB it had been
+  given. Raised it to 2GB. Elasticsearch itself still wouldn't turn
+  healthy, and OpenCTI still wouldn't stay up. Not the real cause.
+- **Second layer, the actual root cause:** Elasticsearch's own logs (not
+  OpenCTI's) showed a disk watermark warning: its data volume had 620MB
+  free out of 15GB, 96% used, triggering a safety mechanism that makes
+  every index read-only. The VM's whole disk, not memory, was the
+  problem, a `df -h` that should have been checked earlier than it was.
+  Fixed properly: grew the virtual disk (30GB more), then grew the
+  partition, the LVM volume, and the filesystem on top of it, in that
+  order, all while the VM was shut down cleanly first.
+- **Third layer, revealed only after the disk was fixed:** OpenCTI now
+  refused to start for a completely different reason: a prior failed
+  attempt had left a partially created Elasticsearch index behind, and
+  OpenCTI correctly refuses to resume an interrupted first-time setup
+  rather than guess. Nothing valuable had been stored yet, so the fix
+  was to wipe the stack's data volumes and let it initialize once, from
+  nothing, cleanly.
+
+None of the individual fixes were wrong to try. Each one was aimed at a
+real, correctly diagnosed problem, just not the deepest one yet. The
+actual lesson: when a fix doesn't fully resolve the symptom, that's a
+signal to look one layer further down, in the failing component's own
+logs specifically, rather than retry the same fix harder.
+
+A smaller, separate obstacle from the same stretch of work: growing the
+disk partition required answering an interactive tool's prompts with the
+exact words it expected (`Fix`, not `Yes`), and one punctuation character
+(`%`, needed to say "the rest of the disk") had been left out of the
+console-typing script's character map, so the first attempt at typing
+`100%` silently became `100`.
+
 ## What's likely still ahead
 
 Noted here so it's not a surprise later, not because any of it is a
 problem yet:
 
-- Elasticsearch has its own kernel-level requirements when run inside a
-  container that haven't been checked yet on this VM.
-- Whether the full deployment actually reaches a healthy state end to
-  end, once every piece is running together, is still unverified.
 - The plan to connect this VM to the original VMware-based test network,
   so the two can be tested together, hasn't been attempted yet and will
   likely have its own connectivity questions once it is.
-- How much further this same 14GB host can be pushed before something
-  else has to move to different hardware is an open question, not
-  a settled one.
+- How much further this same host can be pushed before something else
+  has to move to different hardware, or a different disk, is an open
+  question, not a settled one.
+- Whether the classifier and peer validation layer, once built, add
+  meaningfully to the same VM's resource load is unverified until
+  they exist.
