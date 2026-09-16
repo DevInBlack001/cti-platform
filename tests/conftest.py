@@ -1,7 +1,7 @@
 """Shared pytest fixtures: a FLOD-shaped database for the connector tests.
 
 The logs table below is copied verbatim from FLOD's own
-stage2/schema.py (ddos-reduction-system), not assumed from its docs.
+stage2/schema.py (ddos-reduction-system).
 """
 
 from __future__ import annotations
