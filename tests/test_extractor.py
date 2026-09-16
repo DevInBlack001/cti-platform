@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Iterator
 
+import pytest
+
 from collection.extractor import run
 from collection.sources.base import RawSignal
 
@@ -71,3 +73,43 @@ def test_run_creates_the_sinks_parent_directory(tmp_path: Path, monkeypatch):
     run(_StubConnector([_signal("10.0.0.6")]), sink_path=sink_path)
 
     assert sink_path.exists()
+
+
+def test_refuses_to_write_through_a_symlinked_sink_path(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_dir = tmp_path / "sink_dir"
+    sink_dir.mkdir()
+    sink_path = sink_dir / "observations.ndjson"
+
+    # Create a symlink to some other file at the sink path
+    other_file = tmp_path / "other_file"
+    other_file.write_text("dummy")
+    sink_path.symlink_to(other_file)
+
+    connector = _StubConnector([_signal("10.0.0.6")])
+
+    with pytest.raises(OSError):
+        run(connector, sink_path=sink_path)
+
+    # The symlink target must not have been written through
+    assert other_file.read_text() == "dummy"
+
+
+def test_sink_file_is_owner_only(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    run(_StubConnector([_signal("10.0.0.6")]), sink_path=sink_path)
+
+    mode = sink_path.stat().st_mode & 0o777
+    assert mode == 0o600
+
+
+def test_sink_directory_is_owner_only(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "nested" / "dir" / "observations.ndjson"
+
+    run(_StubConnector([_signal("10.0.0.6")]), sink_path=sink_path)
+
+    mode = sink_path.parent.stat().st_mode & 0o777
+    assert mode == 0o700
