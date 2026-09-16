@@ -2,7 +2,8 @@
 
 Timeline: October 2026 to end of January 2027 (about 17 weeks), covering
 everything needed for a working prototype milestone. Full reasoning behind
-scope and cuts is in [feasibility.md](feasibility.md).
+scope and cuts is in [feasibility.md](feasibility.md). Terms in *italics*
+are defined in the [glossary](glossary.md) the first time they appear.
 
 
 ## Completed
@@ -28,7 +29,7 @@ scope and cuts is in [feasibility.md](feasibility.md).
 | Weeks | Dates (approx.) | Focus | Deliverable |
 |---|---|---|---|
 | 1 | Oct 1-7 | Targeted literature scan (10-12 sources). Finalize research question and threat scenarios. | Research question, 1-page problem statement |
-| 2 | Oct 8-14 | Finalize architecture. Commit to the validation mechanism (reputation + quorum hybrid). | Architecture doc + Threat Observation schema |
+| 2 | Oct 8-14 | Finalize architecture. Commit to the trust-checking mechanism (a *[reputation-weighted quorum](glossary.md#reputation-weighted-quorum)*). | Architecture doc + Threat Observation schema |
 | 3-4 | Oct 15-28 | Build Local Collection + Intelligence Extraction layers; wire in FLOD output as a real data source. | Working single-node pipeline: raw signal to signed observation |
 | 5-6 | Oct 29-Nov 11 | Build the Federation Layer: peer identity, discovery, signed message exchange over the network. | 2 nodes exchanging signed observations |
 | 7-8 | Nov 12-25 | Build Peer Validation Layer v1 (naive fixed quorum, no reputation yet). Full pipeline running end to end across 4 nodes. | 4-node simulation, functioning end to end |
@@ -36,7 +37,7 @@ scope and cuts is in [feasibility.md](feasibility.md).
 | 10 | Dec 3-9 | Instrumentation: logging, metrics (propagation latency, false-accept/reject rate, bandwidth). | Measurement harness ready |
 | 11-12 | Dec 10-23 | Run honest-propagation and node-failure experiments. Reduced-capacity window, treated as buffer. | Baseline results |
 | - | Dec 24-Jan 1 | Deliberate low-output period. | - |
-| 13-14 | Jan 2-15 | Run malicious-peer and Sybil-lite experiments, where the actual research finding is expected to emerge. Likely one iteration of the validation mechanism based on what breaks. | Adversarial results, at least one documented failure mode |
+| 13-14 | Jan 2-15 | Run the dishonest-peer and *[Sybil](glossary.md#sybil-attack)*-lite experiments, where the actual research finding is expected to emerge. Likely one iteration of the trust-checking mechanism based on what breaks. | Adversarial results, at least one documented failure mode |
 | 15 | Jan 16-22 | Analyze results, tie findings back to literature, refine if time allows. | Results section draft |
 | 16-17 | Jan 23-31 | Polish, demo prep, write-up of the working-version milestone. | Working prototype + written progress report |
 

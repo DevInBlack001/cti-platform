@@ -1,156 +1,168 @@
 # Architecture
 
+Terms in *italics* are defined in the [glossary](glossary.md) the first
+time they appear.
+
 ## The five-layer core
 
-- **Local Collection Layer.** Each simulated institution ingests local threat
-  data. FLOD's detection output is used as a real data source for the DDoS
-  indicator type; other indicator types use synthetic or sample data rather
-  than building five full detection engines from scratch.
+- **Local Collection Layer.** Each simulated institution's *[node](glossary.md#node)*
+  gathers its own local threat data. FLOD's DDoS detection is used as one
+  real source for this; other kinds of threats (phishing, brute-force
+  attempts) use sample data instead of building a full detector for each
+  one.
 
-- **Intelligence Extraction Layer.** Converts raw local signals into a
-  shareable, privacy-stripped Threat Observation object. A STIX-lite schema
-  is used; full STIX/TAXII compliance is not required for this scope, though
-  the STIX 2.1 data model was reviewed to design the schema deliberately
-  rather than arbitrarily.
+- **Intelligence Extraction Layer.** Turns a raw local signal into a
+  shareable *[Threat Observation](glossary.md#threat-observation)*
+  with any private details stripped out. The format is a smaller version
+  of *[STIX](glossary.md#stix)*,
+  a standard other threat-sharing tools use, though this project does not
+  need or aim for full compatibility with that standard.
 
-- **Federation Layer.** Peer discovery, identity, message signing, and
-  routing between nodes. Does not need to be internet-scale: a fixed or
-  semi-dynamic peer list among simulated nodes is appropriate here.
+- **Federation Layer.** Handles how *[nodes](glossary.md#node)*
+  find each other, prove who they are, sign their messages, and pass
+  reports around. It does not need to work at internet scale: a short,
+  fixed list of simulated nodes is enough for this project.
 
-- **Peer Validation Layer (the primary research contribution).** A node
-  receiving a peer's observation decides: accept, hold (pending further
-  corroboration), or reject. Implemented as a reputation-weighted quorum:
-  each peer carries a decaying reputation score, updated by whether its past
-  reports were corroborated or contradicted. An observation is accepted once
-  weighted corroboration crosses a threshold, rejected if weighted
-  contradiction outweighs support, or held if neither condition is met yet.
+- **Peer Validation Layer (the main research contribution).** When a node
+  receives a report from a *[peer](glossary.md#peer)*,
+  it has to decide: believe it, wait for more evidence, or reject it. This
+  project answers that with a
+  *[reputation-weighted quorum](glossary.md#reputation-weighted-quorum)*:
+  each peer's past reports earn or lose it trust over time, and a new
+  report is believed once enough trust-weighted peers back it up,
+  rejected if enough weighted peers contradict it, and otherwise held
+  pending more evidence.
 
-- **Local Action Layer.** Each node applies its own policy engine to
-  accepted, classified intelligence (store / alert / block), reusing FLOD's
-  tiered-enforcement thinking as design experience, not as shared code.
+- **Local Action Layer.** Each node decides what to do with intelligence
+  once it is believed: store it, alert someone, or block the source. This
+  reuses ideas from how FLOD separates "what was detected" from "what to
+  do about it," not any of FLOD's actual code.
 
 ## Extended workflow, with automated classification
 
-Added on top of the five-layer core, after confirming CERT-GH's current
-triage process is manual (see [feasibility.md](feasibility.md)):
+Added on top of the five layers above, after confirming CERT-GH's current
+process is done entirely by hand (see [feasibility.md](feasibility.md)):
 
-1. **Local signal ingestion.** A raw signal arrives from local detection
-   tooling, a manually submitted report, or an inbound peer observation.
-2. **Automated classification.** The signal is passed through a locally
-   trained classifier producing a severity estimate, a validity/confidence
-   score, and a category label. The model never auto-publishes or
-   auto-blocks on its own; it produces a scored, structured object only.
-3. **Threshold routing.** High-confidence/low-severity observations queue
-   for batch review; high-confidence/high-severity observations surface
-   immediately at the top of the analyst queue; low-confidence observations
-   of any severity go to the front of the queue for mandatory human triage.
-   The model is never permitted to silently drop what it is unsure about.
-4. **Human review.** The analyst confirms, overrides, or escalates. Every
-   override is logged, both as evidence the human retained final authority
-   and as future labeled training data for improving the classifier.
-5. **Peer validation layer.** A human-confirmed (or high-confidence
-   auto-accepted) observation is packaged as a signed Threat Observation
-   object and broadcast to peers, who run it through their own Peer
-   Validation Layer.
-6. **Local action.** Each node applies its policy engine to validated,
-   classified intelligence.
-7. **Upward reporting.** Validated, classified intelligence is still
-   forwarded to CERT-GH / the relevant sector-CERT. The system is a
-   pre-processing and resilience layer underneath the existing national
-   channel, not a replacement for it.
+1. **Local signal ingestion.** A raw signal comes in from local detection
+   tools, a manually typed-in report, or an incoming peer report.
+2. **Automated classification.** A locally trained model looks at the
+   signal and produces three things: how severe it looks, how confident
+   the model is, and what category it falls into. The model never acts on
+   its own; it only produces this scored summary for a person to review.
+3. **Threshold routing.** Confident, low-severity signals wait in a batch
+   queue; confident, high-severity signals go straight to the top of the
+   queue; anything the model is unsure about, regardless of severity, also
+   goes to the front, because the model is never allowed to quietly drop
+   something it doesn't understand.
+4. **Human review.** A person confirms, overrides, or escalates each
+   signal. Every override is recorded, both as proof a person made the
+   final call and as future training data to improve the model.
+5. **Peer validation layer.** Once a person has confirmed a signal (or the
+   model was confident enough to skip straight through), it is signed and
+   sent to peers, who each run it through their own Peer Validation Layer
+   as described above.
+6. **Local action.** Each node acts on intelligence once it is believed,
+   per its own Local Action Layer.
+7. **Upward reporting.** Believed, classified intelligence is still
+   forwarded on to CERT-GH or the relevant sector body. This system sits
+   underneath that existing national reporting channel and feeds it
+   faster, better-sorted information; it does not replace it.
 
 ```mermaid
 flowchart TD
-    A[Raw signal: local detection, manual report, or peer observation] --> B[Automated Classifier: severity, validity, category]
+    A[Raw signal: local detection, manual report, or peer observation] --> B[Automated Classifier: severity, confidence, category]
     B --> C{Confidence / Severity Routing}
-    C -->|High confidence, low severity| D[Batch queue]
-    C -->|High confidence, high severity| E[Priority queue]
-    C -->|Low confidence| F[Front-of-queue: needs human triage]
-    D --> G[Analyst Review: confirm / override / escalate]
+    C -->|Confident, low severity| D[Batch queue]
+    C -->|Confident, high severity| E[Priority queue]
+    C -->|Not confident| F[Front-of-queue: needs human review]
+    D --> G[Human Review: confirm / override / escalate]
     E --> G
     F --> G
-    G --> H[Signed Threat Observation object]
+    G --> H[Signed Threat Observation]
     H --> I[Peer Validation Layer: reputation + quorum]
-    I -->|Accepted| J[Local Action / Policy Engine]
-    I -->|Rejected/Held| K[Logged, not propagated]
-    J --> L[Upward report to Sector-CERT / CERT-GH]
-    G -.override log.-> M[(Labeled dataset for classifier retraining)]
+    I -->|Believed| J[Local Action / Policy Engine]
+    I -->|Rejected or held| K[Logged, not passed on]
+    J --> L[Report sent up to Sector-CERT / CERT-GH]
+    G -.override log.-> M[(Labeled data for retraining the model)]
 ```
 
 ## Platform base and technology split
 
-**Platform: OpenCTI.** OpenCTI Community Edition (Apache License 2.0) is
-forked and used as the storage, data-model, and UI backbone, left otherwise
-unmodified. This keeps limited build time focused on the two genuinely novel
-contributions (the classifier and the peer validation layer) rather than
-reimplementing storage, UI, and data modeling a mature open-source platform
-already solves well. OpenCTI was compared against MISP; OpenCTI's more
-actively maintained, graph/relationship-oriented data model was judged the
-better fit, though MISP's sighting-support feature and built-in GPG/S-MIME
-signing were reviewed as useful reference points regardless.
+**Platform: OpenCTI.** [OpenCTI](glossary.md#opencti)
+Community Edition is reused as-is for storage and the browsing interface,
+rather than modified, so the limited build time available goes toward
+this project's own two original pieces: the classifier and the Peer
+Validation Layer.
+[MISP](glossary.md#misp)
+was considered as an alternative platform first; OpenCTI's more active
+development and its way of storing relationships between records was
+judged the better fit, though a couple of MISP's own features (marking
+independent sightings of the same indicator, and built-in message
+signing) were kept in mind as useful reference points.
 
-**Peer validation layer: Rust.** Built as an external service, not modified
-into OpenCTI's own codebase; it talks to OpenCTI over its GraphQL API. Rust
-gives this component's networking and cryptographic work the performance and
-low-level control it benefits from.
+**Peer validation layer: Rust.** Built as its own separate program, not
+inserted into OpenCTI's own code, talking to OpenCTI over
+*[GraphQL](glossary.md#graphql)*.
+Rust was chosen for this piece because its networking and
+cryptographic-signing code benefits from the speed and low-level control
+the language gives.
 
-**Classifier: Python.** Also an external service talking to OpenCTI via its
-GraphQL API, using Python's mature ML tooling.
+**Classifier: Python.** Also its own separate program talking to OpenCTI
+over GraphQL, written in Python for its mature set of machine-learning
+tools.
 
-This three-part split (an untouched forked platform, plus two original
-components as separate services calling it) keeps the project's own
-contributions clearly separated from the forked codebase.
+Keeping the platform untouched and both original pieces as separate
+programs keeps this project's own work clearly separate from the reused
+platform's code.
 
-### Apache 2.0 obligations from forking OpenCTI
+### Licensing obligations from reusing OpenCTI
 
-Any OpenCTI source file that is directly modified must carry a prominent
-notice stating that it was changed. The original copyright, patent,
-trademark, and attribution notices already present in OpenCTI's source must
-be retained. New code written for this project does not have to be released
-under Apache 2.0 itself, though keeping the whole repository under Apache
-2.0 is the simpler option and is what this repository does. Practically:
-keep OpenCTI's license headers intact in any touched file, note what changed
-at the top of that file, and credit OpenCTI and Filigran (the company behind
-it) here and in the final report.
+OpenCTI is released under the Apache 2.0 license, which permits reuse and
+modification but comes with a few obligations if any of its own files are
+directly edited: any edited file must say plainly that it was changed, and
+OpenCTI's own copyright and trademark notices must stay in place. New code
+written for this project does not have to use the same license, though
+keeping the whole repository under Apache 2.0 is simpler and is what this
+repository does. In practice: any touched OpenCTI file keeps its original
+license header plus a note of what changed, and OpenCTI and its maker,
+Filigran, are credited here and in the final report.
 
-## Why the classifier is trained, not forked
+## Why the classifier is trained, not reused from elsewhere
 
-VLAI, an existing open-source RoBERTa-based severity classifier trained on
-over 600,000 vulnerability descriptions, was initially proposed as a
-starting point to adapt. That was rejected for two reasons that reinforce
-each other:
+An existing open-source model called VLAI, trained to score the severity
+of software vulnerabilities from over 600,000 vulnerability descriptions,
+was considered as a starting point. Two things ruled it out:
 
-First, VLAI is trained specifically on CVE/vulnerability descriptions, a
-different input domain from what this project needs to classify (DDoS
-traffic patterns, phishing indicators, brute-force logs, and similar).
-Forking it would not produce a working classifier for this use case
-regardless of any other consideration.
+First, VLAI is trained to read vulnerability descriptions, a different
+kind of input from what this project needs to read (DDoS traffic
+patterns, phishing indicators, brute-force login attempts). It would not
+have produced a working classifier for this project's actual inputs.
 
-Second, adapting an existing pretrained model risked reading as "assembling
-pieces" rather than original work to an examiner. The eventual decision,
-train a classifier from scratch using self-generated and self-labeled data
-starting with FLOD's DDoS output, satisfies the practical requirement and
-the originality requirement at once.
+Second, building on someone else's pretrained model would have made it
+harder to show this project's own contribution is original work. Training
+a new model from scratch, on data generated and labeled specifically for
+this project (starting with FLOD's DDoS output), settles both problems at
+once.
 
-The classifier itself is a gradient-boosted-trees model over
-hand-engineered features (log-scaled packets-per-second, unique source IP
-count, SYN ratio, packets-per-source ratio, source ASN diversity, average
-packet size for the DDoS category), trained on labeled data derived from
-FLOD's output. This was chosen over a from-scratch transformer architecture
-deliberately: a much smaller model is appropriate given the realistic data
-volume available, trains fast enough to iterate on within the timeline, and
-produces directly inspectable feature importances, useful both for the
-evaluation section and for a human analyst's trust in why a given
-observation was flagged.
+The classifier itself is a
+*[gradient-boosted-trees](glossary.md#gradient-boosted-trees)*
+model over a small set of hand-picked measurements (packets per second,
+how many different source addresses are involved, and similar, for the
+DDoS category). This kind of model was chosen over a larger,
+from-scratch deep-learning model because the amount of training data
+available is realistic for it, it trains quickly enough to iterate on
+within the project's timeline, and it can show
+*[which measurements mattered most](glossary.md#feature-importance)*
+to a given decision, which is useful both for writing up results and for
+a human reviewer's confidence in why something was flagged.
 
 ## Relationship to FLOD
 
 This project is not an extension of
-[FLOD](https://github.com/DevInBlack001/ddos-reduction-system) (L4
-volumetric DDoS detection and mitigation at a single gateway). FLOD detects
-and mitigates one indicator type at one gateway; this project is a
-multi-institution trust and validation platform. What carries over from
-FLOD is design experience only, specifically tiered enforcement logic and
-the discipline of treating a classifier's verdict as separate from the
-enforcement policy that acts on it, not shared code, not shared
-architecture, and not a shared research question.
+[FLOD](https://github.com/DevInBlack001/ddos-reduction-system), a
+separate project that detects and blocks one kind of flood of traffic at
+a single point in a network. This project is a multi-institution
+trust-and-sharing system instead. What carries over from FLOD is design
+experience only: specifically, the habit of keeping "what was detected"
+and "what to do about it" as separate, independent decisions. No code,
+no shared design, and no shared research question carry over.
