@@ -155,9 +155,12 @@ system.
 
 ### Sink
 
-Wherever a finished Threat Observation is sent once it's built and
-signed: for this project's first working piece, a local file; later, a
-message sent to peer nodes.
+Wherever a finished Threat Observation is sent once it's ready: a local
+file for this project's first working piece, a message sent to peer
+nodes once the federation layer exists, or a storage and browsing
+platform such as OpenCTI once a node has decided an incoming report is
+believed. Like a source connector, a sink is swappable: nothing in this
+project's own code depends on which one is in use.
 
 ### Ed25519
 

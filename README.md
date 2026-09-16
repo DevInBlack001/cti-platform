@@ -51,10 +51,16 @@ why.
 
 ## How It Is Built
 
-**[OpenCTI](docs/glossary.md#opencti)** (Community Edition) is reused
-as-is for storing and browsing data. Two original programs sit on top of
-it and talk to it over its *[GraphQL](docs/glossary.md#graphql)*
-interface:
+This project's own five layers (collection, extraction, federation, peer
+validation, local action) stand on their own; see
+[docs/architecture.md](docs/architecture.md) for how they connect to
+whatever local data source or downstream platform a node chooses. For
+storing and browsing believed reports, this project has been testing
+against **[OpenCTI](docs/glossary.md#opencti)** (Community Edition), an
+external dependency it installs and talks to over its own
+*[GraphQL](docs/glossary.md#graphql)* interface, never forked or
+vendored in. Two original programs sit on top of this project's own
+layers:
 
 - The **trust-checking layer**, in **Rust**, for the speed and low-level
   control its networking and message-signing work benefits from.
@@ -66,7 +72,8 @@ interface:
   flood-detection output.
 
 Keeping both as separate programs, rather than editing OpenCTI itself,
-keeps this project's own work clearly separate from the reused platform.
+keeps this project's own work clearly separate from any downstream
+platform it happens to be tested against.
 
 Full architecture, including the diagram of how a signal moves through
 the system, is in [docs/architecture.md](docs/architecture.md).
@@ -99,9 +106,10 @@ of this project's limits are in
 
 ## Status
 
-Implementation has started. OpenCTI is forked, deployed, and running
-healthy in the local test VM (`deploy/`); the local collection and
-extraction pipeline is spec'd and not yet built. See
+Implementation has started. OpenCTI (Community Edition, an external,
+unforked dependency, see [docs/architecture.md](docs/architecture.md))
+is deployed and running healthy in the local test VM (`deploy/`); the
+local collection and extraction pipeline is spec'd and not yet built. See
 [docs/ROADMAP.md](docs/ROADMAP.md) for the build order and current
 phase, and [docs/lessons-learned.md](docs/lessons-learned.md) for what's
 come up along the way.
@@ -133,7 +141,8 @@ the system should behave are mine.
 
 ## Licence
 
-See [LICENSE](LICENSE). Any OpenCTI source file this project directly
-edits, once the reused copy is added to this repository, must keep
-OpenCTI's existing license header and carry a clear note of what changed,
-per OpenCTI's own license terms.
+See [LICENSE](LICENSE). OpenCTI is never forked, vendored, or edited by
+this project, only installed and run as a separate, external dependency,
+so none of its own license terms attach to this repository. See
+[docs/architecture.md](docs/architecture.md#on-openctis-own-licensing)
+for OpenCTI's own licensing and how this project stays clear of it.
