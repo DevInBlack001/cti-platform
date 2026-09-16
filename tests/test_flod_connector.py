@@ -109,10 +109,9 @@ def _make_flod_db(db_path: Path) -> None:
 def test_uri_special_characters_in_path_do_not_change_which_file_is_opened(
     tmp_path: Path,
 ):
-    """A path containing '?mode=rwc&j=' must not be interpreted as SQLite URI
-    query syntax: it must be percent-encoded so SQLite opens exactly the file
-    the symlink/existence checks validated, not some other path SQLite's URI
-    parser derives by truncating at the first '?'."""
+    """A path containing '?mode=rwc&j=' gets percent-encoded before it
+    reaches SQLite's URI parser, so SQLite opens exactly the whole
+    configured path the symlink/existence checks already validated."""
     odd_dir = tmp_path / "evidence?mode=rwc&j="
     odd_dir.mkdir()
     odd_db_path = odd_dir / "stage2.db?mode=rwc&j="
