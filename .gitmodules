@@ -1,0 +1,3 @@
+[submodule "opencti"]
+	path = opencti
+	url = https://github.com/DevInBlack001/opencti.git
