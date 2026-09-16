@@ -99,11 +99,12 @@ of this project's limits are in
 
 ## Status
 
-Planning and design stage. The architecture, test plan, and technology
-choices are settled (see the
-[decision record](docs/decision-record.md)); implementation has not
-started. See [docs/ROADMAP.md](docs/ROADMAP.md) for the build order and
-current phase.
+Implementation has started. The OpenCTI platform is forked and its
+deployment is being stood up in a local test VM; the local collection
+and extraction pipeline is spec'd and not yet built. See
+[docs/ROADMAP.md](docs/ROADMAP.md) for the build order and current
+phase, and [docs/lessons-learned.md](docs/lessons-learned.md) for what's
+come up along the way.
 
 
 ## Documentation
@@ -116,6 +117,7 @@ current phase.
 | [Reading List](docs/reading-list.md) | Sources to cite, grouped by topic: standards, foundational papers, Ghana-specific sources, recent related work |
 | [Roadmap](docs/ROADMAP.md) | The October to January build timeline, current phase, and what happens if the schedule slips |
 | [Glossary](docs/glossary.md) | Plain-language definitions for every technical term used across these docs |
+| [Lessons Learned](docs/lessons-learned.md) | Real obstacles hit during development, kept for what they generalize to |
 
 
 ## Authorship

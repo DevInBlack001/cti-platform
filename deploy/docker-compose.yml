@@ -46,7 +46,9 @@ services:
       retries: 50
 
   minio:
-    image: minio/minio:latest
+    # Docker Hub's minio/minio now requires authentication to pull; the
+    # Quay.io mirror stays open for anonymous pulls.
+    image: quay.io/minio/minio:latest
     volumes:
       - s3data:/data
     environment:
