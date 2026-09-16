@@ -1,0 +1,199 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Iterator
+
+import pytest
+
+from collection.extractor import run
+from collection.sources.base import RawSignal
+
+
+class _StubConnector:
+    def __init__(self, signals: list[RawSignal]):
+        self._signals = signals
+
+    def iter_signals(self) -> Iterator[RawSignal]:
+        yield from self._signals
+
+
+class _FailingConnector:
+    """Mirrors a real connector whose safety check raises before it ever
+    yields anything, e.g. FlodConnector against a missing database."""
+
+    def iter_signals(self) -> Iterator[RawSignal]:
+        raise FileNotFoundError("No database found at /nonexistent")
+        yield  # pragma: no cover, makes this function a generator
+
+
+def _signal(address: str) -> RawSignal:
+    return RawSignal(
+        observed_at=1_700_000_001.0,
+        source_address=address,
+        indicator_type="ddos-flood",
+        source_verdict="DDoS",
+        evidence={"rate": 950.0, "entropy": 0.2, "proto": "TCP"},
+    )
+
+
+def test_run_writes_one_line_per_signal(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+    connector = _StubConnector([_signal("10.0.0.6"), _signal("10.0.0.7")])
+
+    written = run(connector, sink_path=sink_path)
+
+    assert written == 2
+    lines = sink_path.read_text().splitlines()
+    assert len(lines) == 2
+    first = json.loads(lines[0])
+    assert first["indicator_value"] == "10.0.0.6"
+
+
+def test_run_signs_each_observation_with_the_node_key(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+    connector = _StubConnector([_signal("10.0.0.6")])
+
+    run(connector, sink_path=sink_path)
+
+    written = json.loads(sink_path.read_text().splitlines()[0])
+    assert len(written["signature"]) == 128  # hex-encoded 64-byte Ed25519 signature
+
+
+def test_run_appends_across_two_separate_calls(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    run(_StubConnector([_signal("10.0.0.6")]), sink_path=sink_path)
+    run(_StubConnector([_signal("10.0.0.7")]), sink_path=sink_path)
+
+    lines = sink_path.read_text().splitlines()
+    assert len(lines) == 2
+    addresses = [json.loads(line)["indicator_value"] for line in lines]
+    assert addresses == ["10.0.0.6", "10.0.0.7"]
+
+
+def test_run_creates_the_sinks_parent_directory(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "nested" / "dir" / "observations.ndjson"
+
+    run(_StubConnector([_signal("10.0.0.6")]), sink_path=sink_path)
+
+    assert sink_path.exists()
+
+
+def test_a_valid_but_empty_source_still_creates_the_sink_file(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    written = run(_StubConnector([]), sink_path=sink_path)
+
+    assert written == 0
+    assert sink_path.exists()
+    assert sink_path.read_text() == ""
+
+
+def test_refuses_to_write_through_a_symlinked_sink_path(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_dir = tmp_path / "sink_dir"
+    sink_dir.mkdir()
+    sink_path = sink_dir / "observations.ndjson"
+
+    # Create a symlink to some other file at the sink path
+    other_file = tmp_path / "other_file"
+    other_file.write_text("dummy")
+    sink_path.symlink_to(other_file)
+
+    connector = _StubConnector([_signal("10.0.0.6")])
+
+    with pytest.raises(OSError):
+        run(connector, sink_path=sink_path)
+
+    # The symlink target must not have been written through
+    assert other_file.read_text() == "dummy"
+
+
+def test_a_source_that_fails_validation_leaves_no_sink_or_key_behind(
+    tmp_path: Path, monkeypatch
+):
+    key_dir = tmp_path / "keys"
+    monkeypatch.setenv("CTI_KEY_DIR", str(key_dir))
+    sink_path = tmp_path / "observations.ndjson"
+
+    with pytest.raises(FileNotFoundError):
+        run(_FailingConnector(), sink_path=sink_path)
+
+    assert not sink_path.exists()
+    assert not key_dir.exists()
+
+
+def test_sink_file_is_owner_only(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    run(_StubConnector([_signal("10.0.0.6")]), sink_path=sink_path)
+
+    mode = sink_path.stat().st_mode & 0o777
+    assert mode == 0o600
+
+
+def test_sink_directory_is_owner_only(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "nested" / "dir" / "observations.ndjson"
+
+    run(_StubConnector([_signal("10.0.0.6")]), sink_path=sink_path)
+
+    mode = sink_path.parent.stat().st_mode & 0o777
+    assert mode == 0o700
+
+
+def test_a_signal_with_non_finite_evidence_is_skipped_not_crashing_the_run(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    bad_signal = RawSignal(
+        observed_at=1_700_000_002.0,
+        source_address="10.0.0.9",
+        indicator_type="ddos-flood",
+        source_verdict="DDoS",
+        evidence={"rate": float("inf"), "entropy": 0.2, "proto": "TCP"},
+    )
+    connector = _StubConnector([_signal("10.0.0.6"), bad_signal])
+
+    written = run(connector, sink_path=sink_path)
+
+    assert written == 1
+    lines = sink_path.read_text().splitlines()
+    assert len(lines) == 1
+    assert json.loads(lines[0])["indicator_value"] == "10.0.0.6"
+
+
+def test_a_signal_with_non_serializable_evidence_is_skipped_not_crashing_the_run(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    # A set is not JSON-serializable, this reproduces a TypeError from
+    # json.dumps deep inside signing.
+    bad_signal = RawSignal(
+        observed_at=1_700_000_002.0,
+        source_address="10.0.0.9",
+        indicator_type="ddos-flood",
+        source_verdict="DDoS",
+        evidence={"rate": {1, 2, 3}, "entropy": 0.2, "proto": "TCP"},
+    )
+    connector = _StubConnector([_signal("10.0.0.6"), bad_signal])
+
+    written = run(connector, sink_path=sink_path)
+
+    assert written == 1
+    lines = sink_path.read_text().splitlines()
+    assert len(lines) == 1
+    assert json.loads(lines[0])["indicator_value"] == "10.0.0.6"

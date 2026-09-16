@@ -43,6 +43,11 @@ build/
 # Local logs and scratch output
 *.log
 
+# Defense in depth: never let a signing key or observation sink land in the
+# repo, in case CTI_KEY_DIR or CTI_OBSERVATION_SINK is ever pointed inside it.
+*.pem
+*.ndjson
+
 # Personal Claude Code settings, machine-specific paths
 .claude/settings.local.json
 .claude/scheduled_tasks.lock

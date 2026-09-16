@@ -37,6 +37,23 @@ and [decision-record.md](decision-record.md) for the later decision to
 drop an earlier fork of OpenCTI's repository once discovered to carry
 a separate, more restrictive license.
 
+**Phase 1: Local Collection Layer built and tested (September 2026), ahead of the original schedule.**
+
+Originally scheduled for weeks 3-4 (see the Planned table below); built
+early in the same stretch of work as Phase 0.5, using
+subagent-driven-development with a fresh implementer and an independent
+task review for each of 9 tasks, plus a dedicated security review and a
+final whole-branch review before merging. The `collection/` Python
+package reads a FLOD-shaped *[source connector](glossary.md#source-connector)*,
+builds and Ed25519-signs a *[Threat Observation](glossary.md#threat-observation)*
+per detection, and appends it to a local file, no network code, matching
+the milestone's own scope. Verified against a test fixture (48 automated
+tests) and separately against a real copy of FLOD's live database pulled
+from the test VM: 40,510 real detection rows processed, every resulting
+signature independently verified. See
+[decision-record.md](decision-record.md) for the security findings this
+review caught and fixed before merge.
+
 
 ## Planned
 
@@ -44,11 +61,11 @@ a separate, more restrictive license.
 |---|---|---|---|
 | 1 | Oct 1-7 | Targeted literature scan (10-12 sources). Finalize research question and threat scenarios. | Research question, 1-page problem statement |
 | 2 | Oct 8-14 | Finalize architecture. Commit to the trust-checking mechanism (a *[reputation-weighted quorum](glossary.md#reputation-weighted-quorum)*). | Architecture doc + Threat Observation schema |
-| 3-4 | Oct 15-28 | Build Local Collection + Intelligence Extraction layers; wire in FLOD output as a real data source. | Working single-node pipeline: raw signal to signed observation |
+| 3-4 | Oct 15-28 | *(Completed early, see Phase 1 above.)* Build Local Collection + Intelligence Extraction layers; wire in FLOD output as a real data source. | Working single-node pipeline: raw signal to signed observation |
 | 5-6 | Oct 29-Nov 11 | Build the Federation Layer: peer identity, discovery, signed message exchange over the network. | 2 nodes exchanging signed observations |
 | 7-8 | Nov 12-25 | Build Peer Validation Layer v1 (naive fixed quorum, no reputation yet). Full pipeline running end to end across 4 nodes. | 4-node simulation, functioning end to end |
 | 9 | Nov 26-Dec 2 | Build Local Action / policy layer. Add reputation scoring on top of the naive quorum (v2). | Reputation-weighted validation |
-| 10 | Dec 3-9 | Instrumentation: logging, metrics (propagation latency, false-accept/reject rate, bandwidth). | Measurement harness ready |
+| 10 | Dec 3-9 | Instrumentation: logging, metrics (propagation latency, false-accept/reject rate, bandwidth). Build the minimalist per-node dashboard: reputation scores, quorum decisions, and attack-scenario results, with an outbound link to the node's own CTI platform for full browsing. | Measurement harness ready; node dashboard live |
 | 11-12 | Dec 10-23 | Run honest-propagation and node-failure experiments. Reduced-capacity window, treated as buffer. | Baseline results |
 | - | Dec 24-Jan 1 | Deliberate low-output period. | - |
 | 13-14 | Jan 2-15 | Run the dishonest-peer and *[Sybil](glossary.md#sybil-attack)*-lite experiments, where the actual research finding is expected to emerge. Likely one iteration of the trust-checking mechanism based on what breaks. | Adversarial results, at least one documented failure mode |
@@ -74,3 +91,13 @@ the literature.
   without their own measurement.
 - Additional indicator types beyond DDoS, beyond the synthetic/sample data
   used to demonstrate the architecture generalizes.
+- Building real source and sink connectors for tools beyond FLOD and
+  OpenCTI, once an institution actually needs one. The
+  brute-force scenario's own detector is real, live-simulated traffic in
+  the VM testbed, the same pattern as DDoS; the phishing scenario stays
+  sample data, generated fresh by a script every time it's needed, never
+  a static fixture file, since full phishing infrastructure is
+  disproportionate cost for this milestone.
+- A future sink connector layer that fans out to multiple sinks at once,
+  a node's downstream CTI platform (or several) and its peers over the
+  federation layer, simultaneously, not one active sink at a time.

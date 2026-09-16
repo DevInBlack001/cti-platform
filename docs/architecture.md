@@ -6,10 +6,15 @@ time they appear.
 ## The five-layer core
 
 - **Local Collection Layer.** Each simulated institution's *[node](glossary.md#node)*
-  gathers its own local threat data. FLOD's DDoS detection is used as one
-  real source for this; other kinds of threats (phishing, brute-force
-  attempts) use sample data instead of building a full detector for each
-  one.
+  gathers its own local threat data. FLOD's DDoS detection is the first
+  real source for this, built and tested in the `collection/` package
+  (see [ROADMAP.md](ROADMAP.md#completed)). Brute-force attempts get the
+  same treatment: a real detector against real, live-simulated attack
+  traffic in the VM testbed, the same pattern as DDoS, since the testbed
+  already exists to support it. Phishing stays sample data, generated
+  fresh by a script every time it's needed, never a static fixture file
+  checked into the repository, since full phishing infrastructure is
+  disproportionate cost for one demo scenario.
 
 - **Intelligence Extraction Layer.** Turns a raw local signal into a
   shareable *[Threat Observation](glossary.md#threat-observation)*
@@ -100,11 +105,15 @@ through a small, swappable interface, not a hard dependency.
   FLOD is the first one; a different kind of local detector, or none at
   all, plugs into the same interface without touching anything else.
 - **Writing believed results out** uses the same idea in the other
-  direction, a swappable *sink*. [OpenCTI](glossary.md#opencti) is the
-  sink this project has been testing against, used purely for storage
-  and browsing once the Peer Validation Layer has already decided an
-  observation is believed. A different platform, or no platform at all,
-  plugs into the same interface.
+  direction, a swappable *[sink](glossary.md#sink)*, and every node can
+  configure several at once. [OpenCTI](glossary.md#opencti) is the
+  storage and browsing sink this project has been testing against, used
+  once the Peer Validation Layer has already decided an observation is
+  believed; a peer node, once the Federation Layer exists, is the same
+  kind of sink, addressed through the federation layer's own signed
+  message exchange. A node eventually configures as many sinks as it
+  needs, its platform (or several) and its peers together, and every
+  believed observation fans out to all of them at once.
 
 This is also why OpenCTI is not forked or vendored into this repository:
 it's an external, separately installed dependency, the same way a
