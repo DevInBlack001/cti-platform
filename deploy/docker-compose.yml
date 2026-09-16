@@ -80,7 +80,7 @@ services:
   opencti:
     image: opencti/platform:${OPENCTI_VERSION}
     environment:
-      - NODE_OPTIONS=--max-old-space-size=8096
+      - NODE_OPTIONS=--max-old-space-size=${OPENCTI_NODE_MEMORY_MB}
       - APP__PORT=8080
       - APP__BASE_URL=${OPENCTI_EXTERNAL_SCHEME}://${OPENCTI_HOST}:${OPENCTI_PORT}
       - APP__ADMIN__EMAIL=${OPENCTI_ADMIN_EMAIL}
