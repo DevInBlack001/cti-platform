@@ -20,7 +20,8 @@ class SinkConnector(Protocol):
     def send(self, observation: ThreatObservation) -> None:
         """Sends a signed observation to the destination system.
 
-        Raises an exception if the send fails, which will be caught by the
-        extractor and reported as a skipped signal.
+        Raises an exception if the send fails. Whatever calls send() on a
+        list of configured sinks is responsible for deciding what happens
+        after one of them raises.
         """
         ...

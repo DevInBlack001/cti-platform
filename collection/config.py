@@ -102,7 +102,7 @@ def resolve_opencti_token() -> str:
 
 
 def resolve_wazuh_indexer_url() -> str:
-    """Returns the Wazuh indexer (Elasticsearch) URL from CTI_WAZUH_INDEXER_URL."""
+    """Returns the Wazuh indexer's own URL from CTI_WAZUH_INDEXER_URL."""
     return _require_env("CTI_WAZUH_INDEXER_URL", "Wazuh indexer URL")
 
 

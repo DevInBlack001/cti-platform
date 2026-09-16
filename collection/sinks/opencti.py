@@ -48,8 +48,9 @@ class OpenCtiSinkConnector:
 
         Creates an indicator with a STIX pattern matching the observation's
         indicator type and value, and includes evidence in the description.
-        Raises RuntimeError if OpenCTI returns GraphQL errors or if the HTTP
-        request fails.
+        Raises RuntimeError if OpenCTI accepts the request but reports a
+        GraphQL-level error; an HTTP-level failure (a non-2xx response)
+        raises whatever requests.raise_for_status() itself raises.
         """
         escaped_value = observation.indicator_value.replace("'", "\\'")
         pattern = f"[ipv4-addr:value = '{escaped_value}']"

@@ -1,9 +1,10 @@
 """Extracts threat signals from Wazuh alerts via the indexer API.
 
-Implements the SourceConnector protocol to query Wazuh's Elasticsearch indexer
-for alerts matching a configured rule severity level, yielding a RawSignal for
-each. Tracks the high water mark to avoid reprocessing alerts on subsequent runs.
-Validates the state file for safety before reading.
+Implements the SourceConnector protocol to query Wazuh's own indexer, an
+OpenSearch-compatible search engine, for alerts matching a configured rule
+severity level, yielding a RawSignal for each. Tracks the high water mark
+to avoid reprocessing alerts on subsequent runs. Validates the state file
+for safety before reading.
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ from collection.config import (
 )
 from collection.sources.base import RawSignal
 
-# Number of alerts to fetch per Elasticsearch query to balance latency and memory.
+# Number of alerts to fetch per indexer query, keeping each request's response size bounded.
 _PAGE_SIZE = 500
 # ISO 8601 timestamp for the epoch, used as the initial high water mark.
 _EPOCH_ISO = "1970-01-01T00:00:00.000Z"
@@ -39,7 +40,7 @@ class SymlinkStateError(RuntimeError):
 
 
 class WazuhConnector:
-    """Queries Wazuh alerts from its Elasticsearch indexer."""
+    """Queries Wazuh alerts from its own OpenSearch-compatible indexer."""
 
     def __init__(
         self,
