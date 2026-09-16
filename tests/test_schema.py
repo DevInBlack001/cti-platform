@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime, timezone
 
+import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from collection.schema import build_and_sign, verify
@@ -76,3 +77,28 @@ def test_two_observations_of_the_same_signal_get_different_ids():
     second = build_and_sign(signal, "node-abc123", private_key)
 
     assert first.observation_id != second.observation_id
+
+
+def test_non_finite_evidence_raises_instead_of_producing_invalid_json():
+    """A bare Infinity/NaN in the payload would otherwise serialize as
+    invalid JSON (Python's json module emits the non-standard tokens
+    Infinity/NaN/-Infinity by default) and get silently signed and written.
+    allow_nan=False turns that into a raised ValueError instead, so the
+    extractor's per-signal error handling can catch and skip it."""
+    private_key = Ed25519PrivateKey.generate()
+    signal = replace(
+        _sample_signal(),
+        evidence={"rate": float("inf"), "entropy": 0.2, "proto": "TCP"},
+    )
+
+    with pytest.raises(ValueError):
+        build_and_sign(signal, "node-abc123", private_key)
+
+
+def test_to_json_rejects_non_finite_fields_too():
+    private_key = Ed25519PrivateKey.generate()
+    observation = build_and_sign(_sample_signal(), "node-abc123", private_key)
+    tainted = replace(observation, evidence={"rate": float("nan")})
+
+    with pytest.raises(ValueError):
+        tainted.to_json()

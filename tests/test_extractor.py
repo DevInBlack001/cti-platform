@@ -113,3 +113,51 @@ def test_sink_directory_is_owner_only(tmp_path: Path, monkeypatch):
 
     mode = sink_path.parent.stat().st_mode & 0o777
     assert mode == 0o700
+
+
+def test_a_signal_with_non_finite_evidence_is_skipped_not_crashing_the_run(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    bad_signal = RawSignal(
+        observed_at=1_700_000_002.0,
+        source_address="10.0.0.9",
+        indicator_type="ddos-flood",
+        source_verdict="DDoS",
+        evidence={"rate": float("inf"), "entropy": 0.2, "proto": "TCP"},
+    )
+    connector = _StubConnector([_signal("10.0.0.6"), bad_signal])
+
+    written = run(connector, sink_path=sink_path)
+
+    assert written == 1
+    lines = sink_path.read_text().splitlines()
+    assert len(lines) == 1
+    assert json.loads(lines[0])["indicator_value"] == "10.0.0.6"
+
+
+def test_a_signal_with_non_serializable_evidence_is_skipped_not_crashing_the_run(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.setenv("CTI_KEY_DIR", str(tmp_path / "keys"))
+    sink_path = tmp_path / "observations.ndjson"
+
+    # A set is not JSON-serializable, this reproduces a TypeError from
+    # json.dumps deep inside signing.
+    bad_signal = RawSignal(
+        observed_at=1_700_000_002.0,
+        source_address="10.0.0.9",
+        indicator_type="ddos-flood",
+        source_verdict="DDoS",
+        evidence={"rate": {1, 2, 3}, "entropy": 0.2, "proto": "TCP"},
+    )
+    connector = _StubConnector([_signal("10.0.0.6"), bad_signal])
+
+    written = run(connector, sink_path=sink_path)
+
+    assert written == 1
+    lines = sink_path.read_text().splitlines()
+    assert len(lines) == 1
+    assert json.loads(lines[0])["indicator_value"] == "10.0.0.6"

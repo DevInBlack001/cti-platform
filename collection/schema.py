@@ -30,7 +30,7 @@ class ThreatObservation:
     signature: str
 
     def to_json(self) -> str:
-        return json.dumps(asdict(self), sort_keys=True)
+        return json.dumps(asdict(self), sort_keys=True, allow_nan=False)
 
 
 def _unsigned_payload(
@@ -55,7 +55,7 @@ def _unsigned_payload(
         "severity": severity,
         "confidence": confidence,
     }
-    return json.dumps(payload, sort_keys=True).encode("utf-8")
+    return json.dumps(payload, sort_keys=True, allow_nan=False).encode("utf-8")
 
 
 def build_and_sign(

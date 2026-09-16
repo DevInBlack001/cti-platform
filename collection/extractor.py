@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 from collection.config import resolve_sink_path
@@ -27,7 +28,15 @@ def run(connector: SourceConnector, sink_path: Path | None = None) -> int:
     )
     with os.fdopen(fd, "a", encoding="utf-8") as sink_file:
         for signal in connector.iter_signals():
-            observation = build_and_sign(signal, reporting_node_id, private_key)
-            sink_file.write(observation.to_json() + "\n")
+            try:
+                observation = build_and_sign(signal, reporting_node_id, private_key)
+                sink_file.write(observation.to_json() + "\n")
+            except Exception as exc:
+                source = getattr(signal, "source_address", "unknown")
+                print(
+                    f"cti-platform: skipping signal from {source}: {exc}",
+                    file=sys.stderr,
+                )
+                continue
             written += 1
     return written
