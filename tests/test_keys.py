@@ -66,3 +66,23 @@ def test_key_directory_is_owner_only(tmp_path: Path):
 
     mode = key_dir.stat().st_mode & 0o777
     assert mode == 0o700
+
+
+def test_refuses_to_write_through_a_symlinked_public_key_path(tmp_path: Path):
+    key_dir = tmp_path / "keys"
+    key_dir.mkdir()
+
+    # Create a symlink to some other file at the public key path
+    other_file = tmp_path / "other_file"
+    other_file.write_text("dummy")
+    (key_dir / "node_public_key.pem").symlink_to(other_file)
+
+    # Attempting to create a key should raise OSError due to O_NOFOLLOW
+    try:
+        load_or_create_node_key(key_dir)
+        assert False, "Expected OSError when symlink exists"
+    except OSError:
+        pass
+
+    # The symlink target must not have been written through
+    assert other_file.read_text() == "dummy"

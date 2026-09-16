@@ -50,7 +50,13 @@ def load_or_create_node_key(key_dir: Path | None = None) -> Ed25519PrivateKey:
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    public_key_path.write_bytes(public_bytes)
+    fd = os.open(
+        str(public_key_path),
+        os.O_CREAT | os.O_WRONLY | os.O_EXCL | os.O_NOFOLLOW,
+        mode=0o644,
+    )
+    with os.fdopen(fd, "wb") as f:
+        f.write(public_bytes)
 
     return private_key
 
