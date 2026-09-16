@@ -3,6 +3,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 
 from collection.schema import ThreatObservation
 from collection.sinks.opencti import OpenCtiSinkConnector
@@ -105,3 +106,14 @@ def test_send_skips_tls_verification_only_when_explicitly_allowed(monkeypatch):
         connector.send(observation)
 
     assert mock_post.call_args.kwargs["verify"] is False
+
+
+def test_send_propagates_an_http_level_failure():
+    connector = OpenCtiSinkConnector(url="http://localhost:8080/graphql", token="a-token")
+    observation = _sample_observation()
+    mock_response = MagicMock()
+    mock_response.raise_for_status.side_effect = requests.HTTPError("503 Server Error")
+
+    with patch("collection.sinks.opencti.requests.post", return_value=mock_response):
+        with pytest.raises(requests.HTTPError, match="503 Server Error"):
+            connector.send(observation)
