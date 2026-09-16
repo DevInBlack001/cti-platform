@@ -1,0 +1,44 @@
+# .gitignore
+
+# Planning material and source documents this repo was seeded from.
+# Kept locally, never committed: raw feasibility/report drafts, PDFs, notes.
+attachments/
+
+# Rust (peer validation layer, once it exists)
+target/
+**/target/
+Cargo.lock
+!/Cargo.lock
+
+# Python (classifier service, once it exists)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+
+# Node / TypeScript (OpenCTI fork, once it's vendored in)
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS cruft
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Local logs and scratch output
+*.log
