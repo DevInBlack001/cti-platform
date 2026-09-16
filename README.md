@@ -94,7 +94,7 @@ in [docs/feasibility.md](docs/feasibility.md).
 Planning and design stage. The architecture, evaluation design, and
 technology choices are settled (see the [decision
 record](docs/decision-record.md)); implementation has not started. See
-[ROADMAP.md](ROADMAP.md) for the build order and current phase.
+[docs/ROADMAP.md](docs/ROADMAP.md) for the build order and current phase.
 
 
 ## Documentation
@@ -105,7 +105,7 @@ record](docs/decision-record.md)); implementation has not started. See
 | [Feasibility](docs/feasibility.md) | Executive verdict, evaluation design, the Ghana structural gap this targets, and honest limitations |
 | [Decision Record](docs/decision-record.md) | Every major design decision and the reasoning behind it, kept traceable for the final report |
 | [Reading List](docs/reading-list.md) | Citation resources by category: standards, foundational papers, Ghana-specific sources, recent related work |
-| [Roadmap](ROADMAP.md) | The October to January build timeline, current phase, and what happens if the schedule slips |
+| [Roadmap](docs/ROADMAP.md) | The October to January build timeline, current phase, and what happens if the schedule slips |
 
 
 ## Authorship

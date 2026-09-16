@@ -2,7 +2,7 @@
 
 Timeline: October 2026 to end of January 2027 (about 17 weeks), covering
 everything needed for a working prototype milestone. Full reasoning behind
-scope and cuts is in [docs/feasibility.md](docs/feasibility.md).
+scope and cuts is in [feasibility.md](feasibility.md).
 
 
 ## Completed
@@ -20,7 +20,7 @@ scope and cuts is in [docs/feasibility.md](docs/feasibility.md).
   not peer-to-peer; CERT-GH's triage is manual, with no automated
   classification step.
 - Reading list and citation resources gathered by category.
-- Full decision record written; see [docs/decision-record.md](docs/decision-record.md).
+- Full decision record written; see [decision-record.md](decision-record.md).
 
 
 ## Planned
