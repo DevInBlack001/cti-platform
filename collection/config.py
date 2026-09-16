@@ -57,3 +57,66 @@ def resolve_key_dir() -> ResolvedValue:
 
     default = Path.home() / ".local" / "share" / "cti-platform" / "keys"
     return ResolvedValue(default, "candidate:~/.local/share/cti-platform/keys/")
+
+
+def _require_env(var_name: str, hint: str) -> str:
+    value = os.environ.get(var_name)
+    if not value:
+        raise ConfigNotFoundError(f"No {hint} configured. Set {var_name}.")
+    return value
+
+
+def resolve_opencti_url() -> str:
+    return _require_env("CTI_OPENCTI_URL", "OpenCTI GraphQL URL")
+
+
+def resolve_opencti_token() -> str:
+    return _require_env("CTI_OPENCTI_TOKEN", "OpenCTI API token")
+
+
+def resolve_wazuh_indexer_url() -> str:
+    return _require_env("CTI_WAZUH_INDEXER_URL", "Wazuh indexer URL")
+
+
+def resolve_wazuh_indexer_user() -> str:
+    return _require_env("CTI_WAZUH_INDEXER_USER", "Wazuh indexer username")
+
+
+def resolve_wazuh_indexer_password() -> str:
+    return _require_env("CTI_WAZUH_INDEXER_PASSWORD", "Wazuh indexer password")
+
+
+def resolve_wazuh_api_url() -> str:
+    return _require_env("CTI_WAZUH_API_URL", "Wazuh manager API URL")
+
+
+def resolve_wazuh_api_user() -> str:
+    return _require_env("CTI_WAZUH_API_USER", "Wazuh manager API username")
+
+
+def resolve_wazuh_api_password() -> str:
+    return _require_env("CTI_WAZUH_API_PASSWORD", "Wazuh manager API password")
+
+
+def resolve_wazuh_min_rule_level() -> int:
+    value = os.environ.get("CTI_WAZUH_MIN_RULE_LEVEL")
+    return int(value) if value else 10
+
+
+def resolve_wazuh_state_path() -> ResolvedValue:
+    env_value = os.environ.get("CTI_WAZUH_STATE_PATH")
+    if env_value:
+        return ResolvedValue(Path(env_value), "env:CTI_WAZUH_STATE_PATH")
+
+    default = Path.home() / ".local" / "share" / "cti-platform" / "wazuh-state.json"
+    return ResolvedValue(
+        default, "candidate:~/.local/share/cti-platform/wazuh-state.json"
+    )
+
+
+def resolve_allow_insecure_tls() -> bool:
+    return os.environ.get("CTI_ALLOW_INSECURE_TLS", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
