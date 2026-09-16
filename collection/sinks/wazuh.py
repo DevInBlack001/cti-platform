@@ -21,8 +21,11 @@ from collection.config import (
 from collection.schema import ThreatObservation
 
 # Default active-response command to trigger on a source IP address.
-# This command name is defined in Wazuh's firewall-drop response handler
-# and blocks traffic from the source IP for 600 seconds (10 minutes).
+# Confirmed against the real homelab server's own ar.conf, which lists
+# entries as "<name> - <executable> - <timeout>": firewall-drop600 maps
+# to the firewall-drop executable with a 600-second timeout, and that
+# server's ossec.conf confirms firewall-drop has timeout_allowed set,
+# so the trailing number is a real, active timeout in seconds.
 _DEFAULT_COMMAND = "firewall-drop600"
 
 
@@ -51,7 +54,8 @@ class WazuhSinkConnector:
             password: Password for Wazuh API authentication.
                       Resolved from CTI_WAZUH_API_PASSWORD config if not provided.
             command: Name of the active-response command to execute.
-                     Defaults to firewall-drop600 (10-minute firewall block).
+                     Defaults to firewall-drop600, a 600-second firewall
+                     block, confirmed against a real server's own ar.conf.
         """
         self._api_url = api_url if api_url is not None else resolve_wazuh_api_url()
         self._user = user if user is not None else resolve_wazuh_api_user()
@@ -76,9 +80,10 @@ class WazuhSinkConnector:
                          indicator_value (source IP) to be blocked.
 
         Raises:
-            RuntimeError: If the active-response request fails or Wazuh returns
-                          an error status.
-            requests.RequestException: If authentication or HTTP communication fails.
+            RuntimeError: If Wazuh accepts the HTTP request but reports an
+                          error in the response body.
+            requests.RequestException: If authentication or the HTTP request
+                                       itself fails (a non-2xx response).
         """
         token = self._authenticate()
         # Build the active-response request body with the command, placeholder
