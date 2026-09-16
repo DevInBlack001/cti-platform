@@ -143,3 +143,30 @@ central authority, and that authority is the only place information gets
 compared or combined. Contrasted in these docs with a peer-to-peer
 structure, where organizations can also compare notes directly with each
 other.
+
+### Source connector
+
+A small, self-contained piece of code that knows how to read one
+particular source of local threat data (for example, FLOD's own
+database) and turn its raw records into the shared internal format this
+project uses everywhere else. Adding support for a new kind of threat
+source means writing a new connector, not changing the rest of the
+system.
+
+### Sink
+
+Wherever a finished Threat Observation is sent once it's built and
+signed: for this project's first working piece, a local file; later, a
+message sent to peer nodes.
+
+### Ed25519
+
+A modern, widely trusted method for digitally signing data, used here so
+a peer receiving a Threat Observation can confirm which node produced it
+and that it hasn't been altered since.
+
+### Newline-delimited JSON (NDJSON)
+
+A plain text file format where each line is one complete, independent
+record written in JSON. Easy to read one record at a time without
+loading the whole file, and easy to append a new record to.
