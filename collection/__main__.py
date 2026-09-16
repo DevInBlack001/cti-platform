@@ -6,7 +6,7 @@ import sys
 
 from collection.config import ConfigNotFoundError, resolve_flod_db_path
 from collection.extractor import run
-from collection.sources.flod import FlodConnector
+from collection.sources.flod import FlodConnector, SymlinkDatabaseError
 
 
 def main() -> int:
@@ -17,7 +17,12 @@ def main() -> int:
         return 1
 
     connector = FlodConnector(db_path)
-    written = run(connector)
+    try:
+        written = run(connector)
+    except (SymlinkDatabaseError, FileNotFoundError, PermissionError) as error:
+        print(str(error), file=sys.stderr)
+        return 1
+
     print(f"Wrote {written} observation(s).")
     return 0
 
