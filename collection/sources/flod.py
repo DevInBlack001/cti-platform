@@ -9,6 +9,7 @@ import os
 import sqlite3
 from pathlib import Path
 from typing import Iterator
+from urllib.parse import quote
 
 from collection.sources.base import RawSignal
 
@@ -26,7 +27,8 @@ class FlodConnector:
     def iter_signals(self) -> Iterator[RawSignal]:
         self._check_path_is_safe_to_open()
 
-        connection = sqlite3.connect(f"file:{self._db_path}?mode=ro", uri=True)
+        safe_path = quote(str(self._db_path.resolve()))
+        connection = sqlite3.connect(f"file:{safe_path}?mode=ro", uri=True)
         try:
             cursor = connection.execute(
                 "SELECT timestamp, src_ip, proto, rate, entropy, classification "
