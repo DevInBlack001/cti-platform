@@ -1,9 +1,19 @@
 # .gitignore
 
-# Local session handoff notes, never committed: progress state and next
-# steps between working sessions, may reference in-progress work not
-# ready to share.
+# Local session handoff notes for each AI assistant used on this repo,
+# never committed: progress state and next steps between sessions, may
+# reference in-progress work not ready to share.
 CLAUDE.md
+agy.md
+copilot.md
+
+# Those same tools' own machine-specific settings and scratch state.
+.agy/
+.antigravity/
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+.copilot/
 
 # Planning material and source documents this repo was seeded from.
 # Kept locally, never committed: raw feasibility/report drafts, PDFs, notes.
@@ -48,16 +58,14 @@ build/
 # Local logs and scratch output
 *.log
 
+# Test and subagent-driven-development scratch state
+.pytest_cache/
+.superpowers/
+
 # Defense in depth: never let a signing key or observation sink land in the
 # repo, in case CTI_KEY_DIR or CTI_OBSERVATION_SINK is ever pointed inside it.
 *.pem
 *.ndjson
-
-# Personal Claude Code settings, machine-specific paths
-.claude/settings.local.json
-.claude/scheduled_tasks.lock
-.claude/worktrees/
-.copilot/
 
 # The local validation VM, converted from the VMware Fedora VM. Large binary
 # disk image, never belongs in git history.
