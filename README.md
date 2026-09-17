@@ -70,11 +70,16 @@ programs sit on top of this project's own layers:
 - The **sorting model**, in **Python**, using Python's mature set of
   machine-learning tools. A
   *[gradient-boosted-trees](docs/glossary.md#gradient-boosted-trees)*
-  model, trained so far on real DDoS detections from
+  model that scores any incoming signal, whether it comes from local
+  detection, a person typing in a report by hand, or an incoming peer
+  report, for severity, confidence, and category, the same kind of
+  triage work a body like CERT-GH does by hand today, with a person
+  still confirming the final call. Its training data today comes from
+  real DDoS detections from
   [FLOD](https://github.com/DevInBlack001/ddos-reduction-system), the
-  first local detector this project fully built and the first real
-  training data available. Extending it to brute-force and phishing
-  reports, as those detectors come online, is planned; see
+  first local detector this project fully built and so its first real
+  training data; broadening that training data as more real detectors
+  and peer reports come online is planned, see
   [docs/ROADMAP.md](docs/ROADMAP.md).
 
 Keeping both as separate programs keeps this project's own work clearly

@@ -102,13 +102,16 @@ the literature.
   model (compromised peer, replay attack, intelligence flooding, network
   partition) as their own dedicated experiments, each with its own
   measurement, beyond the engineered mitigations already built for them.
-- Extending the classifier beyond DDoS. Its training data today comes
-  entirely from FLOD's real detections, the first local detector this
-  project fully built; retraining it on brute-force's own real,
-  live-simulated traffic, and on phishing's generated sample data, once
-  those categories have enough labeled signals of their own, is the
-  planned path to a classifier that covers every scenario this project
-  detects.
+- Broadening the classifier's training data. It's a general intelligence
+  classifier by design, meant to score severity, confidence, and
+  category for any incoming signal, local detection or peer report
+  alike. Its training data today comes entirely from FLOD's
+  real DDoS detections, the first local detector this project fully
+  built and so its first real training data; adding brute-force's own
+  real, live-simulated traffic, phishing's generated sample data, and
+  eventually real peer reports once the Federation Layer exists, is
+  the planned path to a classifier with the breadth its design already
+  calls for.
 - Building real source and sink connectors for tools beyond FLOD,
   OpenCTI, and Wazuh, once an institution actually needs one. The
   brute-force scenario's own detector is real, live-simulated traffic in
