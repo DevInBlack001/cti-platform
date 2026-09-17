@@ -54,12 +54,17 @@ why.
 This project's own five layers (collection, extraction, federation, peer
 validation, local action) stand on their own; see
 [docs/architecture.md](docs/architecture.md) for how they connect to
-whatever local data source or downstream platform a node chooses. For
-storing and browsing believed reports, this project has been testing
-against **[OpenCTI](docs/glossary.md#opencti)** (Community Edition), an
-external dependency it installs and talks to over its own
-*[GraphQL](docs/glossary.md#graphql)* interface. Two original programs
-sit on top of this project's own layers:
+whatever local data source or downstream platform a node chooses.
+Reading local data in and writing believed reports out both go through
+a small, swappable interface, not a hard dependency on any one tool.
+This project has been testing that design against two real systems so
+far: **[OpenCTI](docs/glossary.md#opencti)** (Community Edition), used
+for storing and browsing believed reports, and **Wazuh**, used both as
+a local detection source (reading its own alerts in) and as a sink
+(triggering its active-response mechanism once an observation is
+believed). Neither is a hard requirement; a node can run either, both,
+or a different platform its own connector targets. Two original
+programs sit on top of this project's own layers:
 
 - The **trust-checking layer**, in **Rust**, for the speed and low-level
   control its networking and message-signing work benefits from.
@@ -70,9 +75,9 @@ sit on top of this project's own layers:
   [FLOD](https://github.com/DevInBlack001/ddos-reduction-system)'s
   flood-detection output.
 
-Keeping both as separate programs, rather than editing OpenCTI itself,
-keeps this project's own work clearly separate from any downstream
-platform it happens to be tested against.
+Keeping both as separate programs, rather than editing any downstream
+platform's own code, keeps this project's own work clearly separate
+from whatever platform it happens to be tested against.
 
 Full architecture, including the diagram of how a signal moves through
 the system, is in [docs/architecture.md](docs/architecture.md).
@@ -122,7 +127,7 @@ for what's come up along the way.
 
 | Document | Covers |
 |-|-|
-| [Architecture](docs/architecture.md) | How a signal moves through the system, the extended sorting workflow, the OpenCTI/Rust/Python split, and why the sorting model was trained rather than reused |
+| [Architecture](docs/architecture.md) | How a signal moves through the system, the extended sorting workflow, the platform/Rust/Python split, and why the sorting model was trained rather than reused |
 | [Feasibility](docs/feasibility.md) | The honest verdict on what's achievable, the test plan, the Ghana-specific gap this targets, and this project's limits |
 | [Decision Record](docs/decision-record.md) | Every major design decision and the reasoning behind it, kept traceable for the final report |
 | [Reading List](docs/reading-list.md) | Sources to cite, grouped by topic: standards, foundational papers, Ghana-specific sources, recent related work |
