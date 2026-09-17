@@ -26,7 +26,14 @@ time they appear.
 - **Federation Layer.** Handles how *[nodes](glossary.md#node)*
   find each other, prove who they are, sign their messages, and pass
   reports around. It does not need to work at internet scale: a short,
-  fixed list of simulated nodes is enough for this project.
+  fixed list of simulated nodes is enough for this project. What moves
+  between peers is always this project's own *[Threat
+  Observation](glossary.md#threat-observation)* format, never a specific
+  platform's own native shape, so two nodes can exchange reports
+  directly regardless of which CTI platform each one runs locally (one
+  on OpenCTI, another on MISP, another on Wazuh alone); translating into
+  a specific platform's format is the sink connector's job, done after
+  a separate step handled after a report is received and believed.
 
 - **Peer Validation Layer (the main research contribution).** When a node
   receives a report from a *[peer](glossary.md#peer)*,
@@ -42,6 +49,30 @@ time they appear.
   once it is believed: store it, alert someone, or block the source. This
   reuses the design habit of keeping "what was detected" separate from
   "what to do about it," a lesson carried over from FLOD.
+
+## Planned peer onboarding and a zero-trust federation
+
+Two design decisions for the Federation Layer, settled ahead of that
+layer's own build week, so the interfaces below it don't need to change
+once it exists:
+
+- **A single attestation server, with one narrow job.** New peers
+  joining the federation get validated by a dedicated attestation
+  server: it checks a joining node's identity and eligibility, then gets
+  out of the way. It plays no part in the ongoing exchange of reports
+  between already-validated peers, so it going down stops new peers from
+  joining, and nothing else. Existing peers keep signing, sending, and
+  validating each other's reports directly, with no dependency on the
+  attestation server staying up.
+- **Zero trust, applied continuously.** Passing attestation is a
+  one-time check at the moment a peer joins; it never becomes standing
+  trust on its own. Every message a peer sends afterward is
+  independently verified on its own signature and content every time,
+  and the *[reputation-weighted
+  quorum](glossary.md#reputation-weighted-quorum)* keeps recalculating
+  how much to trust that peer from its actual, ongoing track record. A
+  peer's network location or prior good behavior never substitutes for
+  verifying the current message on its own merits.
 
 ## Extended workflow, with automated classification
 

@@ -114,5 +114,17 @@ the literature.
 - Extending the sink fan-out helper to include peer nodes once the
   Federation Layer exists, so a believed observation reaches a node's
   platforms and its peers at the same time. The fan-out mechanism itself
-  is already built (Phase 2); only the peer-sink side of it is still
-  ahead.
+  is already built (Phase 2), including running several platform sinks
+  at once for a node that runs more than one CTI platform; only the
+  peer-sink side of it is still ahead.
+- A sink connector for MISP, so a node reporting into MISP can take part
+  in the same federation as a node running OpenCTI or Wazuh. The
+  Federation Layer already carries reports in this project's own format,
+  not any platform's native shape, precisely so peers can mix platforms
+  freely; MISP is the next concrete platform to build a sink for, once
+  a real MISP instance exists to verify the connector against, matching
+  the same real-system standard held for every other connector.
+- A single attestation server for peer onboarding, and a zero-trust
+  posture between already-validated peers. See
+  [architecture.md](architecture.md#planned-peer-onboarding-and-a-zero-trust-federation)
+  for the design.
