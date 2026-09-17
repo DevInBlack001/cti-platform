@@ -25,42 +25,65 @@ them.
    https://nlp.stanford.edu/pubs/eigentrust.pdf. A widely cited approach
    to *[EigenTrust](glossary.md#eigentrust)*-style reputation scoring,
    read as a reference point before designing this project's own version.
+6. D.J. Bernstein, N. Duif, T. Lange, P. Schwabe, B.-Y. Yang, "High-speed
+   high-security signatures," Journal of Cryptographic Engineering, vol.
+   2, 2012, pp. 77-89. https://ed25519.cr.yp.to/ed25519-20110926.pdf. The
+   original paper for *[Ed25519](glossary.md#ed25519)*, the signature
+   scheme every Threat Observation this project produces is actually
+   signed with.
+7. P. Maymounkov, D. Mazières, "Kademlia: A Peer-to-peer Information
+   System Based on the XOR Metric," IPTPS 2002, LNCS vol. 2429, Springer,
+   pp. 53-65. The peer-discovery design an earlier piece of prior work
+   applied directly to this project's Federation Layer is built on; see
+   [decision-record.md](decision-record.md).
+8. S. Rose, O. Borchert, S. Mitchell, S. Connelly, "Zero Trust
+   Architecture," NIST Special Publication 800-207, August 2020.
+   https://csrc.nist.gov/pubs/sp/800/207/final. Grounds the continuous
+   verification this project's own Peer Validation Layer applies to
+   every peer, all the time, starting from the moment a peer joins and
+   kept up after; see [decision-record.md](decision-record.md).
+9. J.H. Friedman, "Greedy Function Approximation: A Gradient Boosting
+   Machine," Annals of Statistics, vol. 29, no. 5, 2001, pp. 1189-1232.
+   The foundational paper for
+   *[gradient-boosted-trees](glossary.md#gradient-boosted-trees)*, the
+   model type behind this project's own classifier, read as a reference
+   point the same way EigenTrust is for the trust mechanism.
 
 ## Ghana-specific, deep read
 
-6. Cybersecurity Act, 2020 (*[Act 1038](glossary.md#act-1038)*). Sets out
-   the *[CSA](glossary.md#csa)*'s authority, incident-reporting rules, and
-   rules for critical infrastructure.
-7. Ghana National Cybersecurity Policy and Strategy.
-   https://www.csa.gov.gh/resources.php
-8. CSA Annual Report (most recent available). Same resources page.
+10. Cybersecurity Act, 2020 (*[Act 1038](glossary.md#act-1038)*). Sets out
+    the *[CSA](glossary.md#csa)*'s authority, incident-reporting rules,
+    and rules for critical infrastructure.
+11. Ghana National Cybersecurity Policy and Strategy.
+    https://www.csa.gov.gh/resources.php
+12. CSA Annual Report (most recent available). Same resources page.
 
 ## Medium read, for the architecture / evaluation / limitations sections
 
-9. T.D. Wagner, K. Mahbub, E. Palomar, A.E. Abdallah, "Cyber threat
-   intelligence sharing: Survey and research directions," Computers &
-   Security, vol. 87, 2019, art. 101589.
-10. "TrustFed-CTI: A Trust-Aware Federated Learning Framework for
+13. T.D. Wagner, K. Mahbub, E. Palomar, A.E. Abdallah, "Cyber threat
+    intelligence sharing: Survey and research directions," Computers &
+    Security, vol. 87, 2019, art. 101589.
+14. "TrustFed-CTI: A Trust-Aware Federated Learning Framework for
     Privacy-Preserving Cyber Threat Intelligence Sharing Across
     Distributed Organizations," Future Internet, 17(11), 2025, art. 512.
     https://doi.org/10.3390/fi17110512. The closest recent prior work;
     this project's own contribution needs to be clearly compared against
     it.
-11. M. Bouharoun, B. Taghdouti, M. Erradi, "A Peer to Peer Federated Graph
+15. M. Bouharoun, B. Taghdouti, M. Erradi, "A Peer to Peer Federated Graph
     Neural Network for Threat Intelligence," NETYS 2023, LNCS vol. 14067,
     Springer.
-12. "TrustShare: Secure and Trusted Blockchain Framework for Threat
+16. "TrustShare: Secure and Trusted Blockchain Framework for Threat
     Intelligence Sharing," Future Internet, 17(7), 2025, art. 289.
     https://doi.org/10.3390/fi17070289. Read specifically to explain why
     this project does not use a blockchain.
 
 ## Background, skim for context
 
-13. Alwabisi et al., "Cyber Threat Intelligence on Blockchain: A
+17. Alwabisi et al., "Cyber Threat Intelligence on Blockchain: A
     Systematic Literature Review," Information (MDPI), 13(3), 2024.
     https://www.mdpi.com/2073-431X/13/3/60. Gives a map of the wider
     trust/reputation/blockchain research space in one place.
-14. M. Castro, B. Liskov, "Practical Byzantine Fault Tolerance," OSDI '99,
+18. M. Castro, B. Liskov, "Practical Byzantine Fault Tolerance," OSDI '99,
     1999. Only needed if the quorum mechanism ends up needing a formal
     proof of how many dishonest nodes it can tolerate, see
     *[Byzantine Fault Tolerance](glossary.md#byzantine-fault-tolerance-bft)*.
