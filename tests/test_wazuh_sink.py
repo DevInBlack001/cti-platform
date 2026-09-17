@@ -107,3 +107,24 @@ def test_send_verifies_tls_by_default(monkeypatch):
 
     assert mock_post.call_args.kwargs["verify"] is True
     assert mock_put.call_args.kwargs["verify"] is True
+
+
+def test_send_accepts_error_code_2_when_active_agents_are_affected():
+    connector = WazuhSinkConnector(
+        api_url="https://wazuh.example:55000", user="wazuh", password="a-password"
+    )
+    observation = _sample_observation()
+
+    auth_response = MagicMock()
+    auth_response.json.return_value = {"data": {"token": "a-jwt-token"}}
+    ar_response = MagicMock()
+    ar_response.json.return_value = {
+        "error": 2,
+        "message": "AR command was not sent to some agents",
+        "data": {"total_affected_items": 5, "total_failed_items": 2}
+    }
+
+    with patch("collection.sinks.wazuh.requests.post", return_value=auth_response), \
+         patch("collection.sinks.wazuh.requests.put", return_value=ar_response):
+        connector.send(observation)  # Should complete without error
+

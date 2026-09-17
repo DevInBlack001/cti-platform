@@ -102,8 +102,12 @@ class WazuhSinkConnector:
         )
         response.raise_for_status()
         result = response.json()
-        # Check the error field in the response; non-zero error values indicate failure.
-        if result.get("error"):
+        # Non-zero error values indicate failure, except for code 2 ("AR command was not sent to some agents")
+        # when at least one active agent received the command successfully.
+        error_code = result.get("error", 0)
+        data_field = result.get("data", {})
+        affected_count = data_field.get("total_affected_items", 0) if isinstance(data_field, dict) else 0
+        if error_code != 0 and not (error_code == 2 and affected_count > 0):
             raise RuntimeError(
                 f"Wazuh rejected the active-response command: {result.get('message', result)}"
             )
