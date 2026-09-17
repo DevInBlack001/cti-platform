@@ -108,9 +108,9 @@ the literature.
   OpenCTI, and Wazuh, once an institution actually needs one. The
   brute-force scenario's own detector is real, live-simulated traffic in
   the VM testbed, the same pattern as DDoS; the phishing scenario stays
-  sample data, generated fresh by a script every time it's needed, never
-  a static fixture file, since full phishing infrastructure is
-  disproportionate cost for this milestone.
+  sample data, generated fresh by a script every time it's needed, since
+  full phishing infrastructure is disproportionate cost for this
+  milestone.
 - Extending the sink fan-out helper to include peer nodes once the
   Federation Layer exists, so a believed observation reaches a node's
   platforms and its peers at the same time. The fan-out mechanism itself

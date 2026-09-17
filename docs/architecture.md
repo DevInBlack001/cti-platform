@@ -12,9 +12,10 @@ time they appear.
   same treatment: a real detector against real, live-simulated attack
   traffic in the VM testbed, the same pattern as DDoS, since the testbed
   already exists to support it. Phishing stays sample data, generated
-  fresh by a script every time it's needed, never a static fixture file
-  checked into the repository, since full phishing infrastructure is
-  disproportionate cost for one demo scenario.
+  fresh by a script every time it's needed, since full phishing
+  infrastructure is disproportionate cost for one demo scenario and a
+  fixture file checked into the repository would let anyone see the
+  "test data" in advance.
 
 - **Intelligence Extraction Layer.** Turns a raw local signal into a
   shareable *[Threat Observation](glossary.md#threat-observation)*
@@ -28,12 +29,12 @@ time they appear.
   reports around. It does not need to work at internet scale: a short,
   fixed list of simulated nodes is enough for this project. What moves
   between peers is always this project's own *[Threat
-  Observation](glossary.md#threat-observation)* format, never a specific
-  platform's own native shape, so two nodes can exchange reports
-  directly regardless of which CTI platform each one runs locally (one
-  on OpenCTI, another on MISP, another on Wazuh alone); translating into
-  a specific platform's format is the sink connector's job, done after
-  a separate step handled after a report is received and believed.
+  Observation](glossary.md#threat-observation)* format, so two nodes can
+  exchange reports directly regardless of which CTI platform each one
+  runs locally (one on OpenCTI, another on MISP, another on Wazuh
+  alone); translating into a specific platform's own format is the sink
+  connector's job, a separate step handled after a report is received
+  and believed.
 
 - **Peer Validation Layer (the main research contribution).** When a node
   receives a report from a *[peer](glossary.md#peer)*,
