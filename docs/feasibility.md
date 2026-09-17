@@ -5,13 +5,12 @@ time they appear.
 
 ## Executive verdict
 
-A working version by end of January is realistic if it stays a
-controlled, simulated *[federation](glossary.md#federation)* of 4 to 8
-*[nodes](glossary.md#node)*, not a real deployment across actual
-institutions. "Working" means: several independent programs, each
-standing in for one institution, exchanging signed
+A working version by end of January is realistic as a controlled,
+simulated *[federation](glossary.md#federation)* of 4 to 8
+*[nodes](glossary.md#node)*. "Working" means: several independent
+programs, each standing in for one institution, exchanging signed
 *[Threat Observations](glossary.md#threat-observation)* with each other,
-running a real (not faked) trust-checking step, and surviving a defined
+running a genuinely working trust-checking step, and surviving a defined
 set of attack scenarios with measured results. Bringing in real Ghanaian
 institutions, running on real production traffic, or setting up a formal
 governance/legal agreement between institutions are explicitly out of
@@ -32,11 +31,11 @@ seven attack scenarios) to something that fits the available time:
 
 - **Two versions are actually built and run**: one with no trust-checking
   at all, and this project's trust-checked version. A third,
-  fully-centralized comparison point is described using existing research
-  rather than built as a working system.
-- **4 to 8 simulated nodes.** Scaling up to 50 is future work, not built.
-- **Three attack scenarios are built and tested properly**, instead of
-  seven tested shallowly: one dishonest peer, one node going offline, and
+  fully-centralized comparison point exists only as a description
+  grounded in existing research.
+- **4 to 8 simulated nodes.** Scaling up to 50 is future work.
+- **Three attack scenarios are built and tested properly**: one
+  dishonest peer, one node going offline, and
   a small *[Sybil](glossary.md#sybil-attack)* cluster (one attacker
   pretending to be several peers). Two extra safeguards, replay
   protection and basic flood-rate limiting, are built into the system but
@@ -83,16 +82,16 @@ second contribution (automated classification):
   app, and are then prioritized and assigned by a human analyst, with no
   sign of automated sorting anywhere in that process. This is exactly the
   gap this project's second contribution, an automated classifier that
-  assists rather than replaces that human step, is built to help with: a
-  real, documented bottleneck, not a problem someone has already solved.
+  assists that human step, is built to help with: a real, documented
+  bottleneck.
 
 ## A clear line on what this project claims
 
 Act 1038 gives the CSA a centralized reporting role. This project is
 described throughout as something that helps institutions act on threat
 intelligence faster than a purely centralized channel allows, while still
-sending believed reports upward to CERT-GH, not something that goes
-around or replaces that centralized role. Leaving this unstated would
+sending believed reports upward to CERT-GH, working alongside that
+centralized role. Leaving this unstated would
 risk an examiner reading the project as trying to bypass national
 cybersecurity governance, which is not the intent.
 
@@ -103,8 +102,8 @@ nodes. It shows that this project's trust-checking approach can resist a
 defined set of attacks with measurable tradeoffs. It does not show that
 real Ghanaian institutions would actually adopt it, that it would work
 alongside CSA's existing reporting channel in practice, or that it would
-hold up against real attackers rather than simulated ones. This
-limitation is stated plainly here rather than left unsaid, since claiming
+hold up against real attackers. This limitation is stated plainly here,
+since claiming
 this semester-scale prototype is "a solution for Ghana's cybersecurity
 problem" is exactly the kind of overreach an examiner is likely to
 challenge.
@@ -114,12 +113,11 @@ challenge.
 Two candidate final-year project ideas were compared: this one (shared,
 trust-checked threat intelligence between institutions) against a
 separate idea for secure file-sharing between peers. This one was chosen
-for three reasons: it fits squarely within cybersecurity/trust research
-rather than drifting into general distributed-systems territory, which
-matters for how a department committee will judge it; its core question,
-"why should one node believe another node's report," is narrow and
-measurable, unlike the alternative's broader, less bounded questions; and
-an already-designed but unbuilt piece of prior work, a
+for three reasons: it fits squarely within cybersecurity/trust research,
+which matters for how a department committee will judge it; its core
+question, "why should one node believe another node's report," is narrow
+and measurable; and an already-designed but unbuilt piece of prior work,
+a
 peer-to-peer network design using
 *[Kademlia](glossary.md#kademlia)*-based discovery and
 *[mutual attestation](glossary.md#mutual-attestation)*, applies directly

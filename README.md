@@ -25,10 +25,9 @@ research contribution.
 
 The question this project is built to answer:
 
-> Can institutions that check each other's reports directly, instead of
-> only reporting to one central authority, catch and share real threats
-> more reliably than if they didn't check each other at all, and what
-> does that cost in time and network traffic?
+> Can institutions that check each other's reports directly catch and
+> share real threats reliably, and what does that cost in time and
+> network traffic?
 
 Two separate, individually defensible contributions come out of this
 work:
@@ -44,8 +43,8 @@ work:
   currently done entirely by hand with no automated help anywhere in it.
 
 Both the sorting model and the trust-checking system were designed and
-trained from scratch for this project, not adapted from something that
-already existed. See [docs/architecture.md](docs/architecture.md) for
+trained from scratch, purpose-built for this project. See
+[docs/architecture.md](docs/architecture.md) for
 why.
 
 
@@ -56,7 +55,7 @@ validation, local action) stand on their own; see
 [docs/architecture.md](docs/architecture.md) for how they connect to
 whatever local data source or downstream platform a node chooses.
 Reading local data in and writing believed reports out both go through
-a small, swappable interface, not a hard dependency on any one tool.
+a small, swappable interface.
 This project has been testing that design against two real systems so
 far: **[OpenCTI](docs/glossary.md#opencti)** (Community Edition), used
 for storing and browsing believed reports, and **Wazuh**, used both as
@@ -75,9 +74,9 @@ programs sit on top of this project's own layers:
   [FLOD](https://github.com/DevInBlack001/ddos-reduction-system)'s
   flood-detection output.
 
-Keeping both as separate programs, rather than editing any downstream
-platform's own code, keeps this project's own work clearly separate
-from whatever platform it happens to be tested against.
+Keeping both as separate programs keeps this project's own work clearly
+separate from whatever platform it happens to be tested against,
+without ever touching that platform's own code.
 
 Full architecture, including the diagram of how a signal moves through
 the system, is in [docs/architecture.md](docs/architecture.md).
@@ -86,7 +85,7 @@ the system, is in [docs/architecture.md](docs/architecture.md).
 ## Scope
 
 **In scope for the working prototype:** a controlled, simulated group of
-4 to 8 nodes, a real (not faked) trust-scored voting mechanism, and
+4 to 8 nodes, a genuinely working trust-scored voting mechanism, and
 measured survival of three attack scenarios: one dishonest peer, one node
 going offline, and a small
 *[Sybil](docs/glossary.md#sybil-attack)* cluster (one attacker pretending
@@ -94,14 +93,7 @@ to be several peers).
 
 **Out of scope:** bringing in real Ghanaian institutions, running on real
 production traffic, or setting up a formal governance/legal agreement.
-These belong to future work, not this deliverable.
-
-**Explicitly not an extension of FLOD.** FLOD watches for one kind of
-flood of traffic at one point in a network. This project is a
-multi-institution trust-and-sharing system; what carries over from FLOD
-is design experience only, not shared code or a shared research
-question. See
-[docs/architecture.md](docs/architecture.md#relationship-to-flod).
+These belong to future work.
 
 Full feasibility assessment, Ghana-specific context, and an honest list
 of this project's limits are in
@@ -127,7 +119,7 @@ for what's come up along the way.
 
 | Document | Covers |
 |-|-|
-| [Architecture](docs/architecture.md) | How a signal moves through the system, the extended sorting workflow, the platform/Rust/Python split, and why the sorting model was trained rather than reused |
+| [Architecture](docs/architecture.md) | How a signal moves through the system, the extended sorting workflow, the platform/Rust/Python split, and why the sorting model was trained from scratch |
 | [Feasibility](docs/feasibility.md) | The honest verdict on what's achievable, the test plan, the Ghana-specific gap this targets, and this project's limits |
 | [Decision Record](docs/decision-record.md) | Every major design decision and the reasoning behind it, kept traceable for the final report |
 | [Reading List](docs/reading-list.md) | Sources to cite, grouped by topic: standards, foundational papers, Ghana-specific sources, recent related work |

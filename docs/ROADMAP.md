@@ -28,7 +28,7 @@ are defined in the [glossary](glossary.md) the first time they appear.
 
 Not originally scheduled as its own step (see
 [decision-record.md](decision-record.md) for that gap and why it got
-closed here rather than left implicit). OpenCTI Community Edition is
+closed here). OpenCTI Community Edition is
 deployed inside the local test VM and running healthy end to end
 (platform, worker, and the standard connectors, all confirmed reachable
 over HTTP). See [lessons-learned.md](lessons-learned.md) for what it
@@ -59,7 +59,7 @@ review caught and fixed before merge.
 | 1 | Oct 1-7 | Targeted literature scan (10-12 sources). Finalize research question and threat scenarios. | Research question, 1-page problem statement |
 | 2 | Oct 8-14 | Finalize architecture. Commit to the trust-checking mechanism (a *[reputation-weighted quorum](glossary.md#reputation-weighted-quorum)*). | Architecture doc + Threat Observation schema |
 | 3-4 | Oct 15-28 | *(Completed early, see Phase 1 above.)* Build Local Collection + Intelligence Extraction layers; wire in FLOD output as a real data source. | Working single-node pipeline: raw signal to signed observation |
-| 5-6 | Oct 29-Nov 11 | Build the Federation Layer: peer identity, discovery, signed message exchange over the network. In parallel, not blocking: the sink connector layer (OpenCTI, Wazuh), and a Wazuh source connector alongside FLOD's. | 2 nodes exchanging signed observations |
+| 5-6 | Oct 29-Nov 11 | Build the Federation Layer: peer identity, discovery, signed message exchange over the network. Run alongside it: the sink connector layer (OpenCTI, Wazuh), and a Wazuh source connector alongside FLOD's. | 2 nodes exchanging signed observations |
 | 7-8 | Nov 12-25 | Build Peer Validation Layer v1 (naive fixed quorum, no reputation yet). Full pipeline running end to end across 4 nodes. | 4-node simulation, functioning end to end |
 | 9 | Nov 26-Dec 2 | Build Local Action / policy layer. Add reputation scoring on top of the naive quorum (v2). Build the minimalist per-node dashboard: peer network status, quorum decisions, and classifier performance, with a corner link to the node's own CTI platform for full browsing. Moved up from week 10, the earliest point real peer and quorum data exists to show. | Reputation-weighted validation; node dashboard live |
 | 10 | Dec 3-9 | Instrumentation: logging, metrics (propagation latency, false-accept/reject rate, bandwidth). | Measurement harness ready |
@@ -76,16 +76,16 @@ contribution; failure-tolerance is comparatively well-trodden ground in
 the literature.
 
 
-## Explicitly future work, not on this roadmap
+## Explicitly future work
 
 - Onboarding real Ghanaian institutions as pilot nodes.
-- Running on real production traffic rather than simulated/synthetic data.
+- Running on real production traffic.
 - A governance or legal framework for cross-institution sharing.
 - Scaling the federation beyond 8 simulated nodes.
 - Building out the remaining four threat scenarios from the full threat
   model (compromised peer, replay attack, intelligence flooding, network
-  partition) as dedicated experiments, rather than engineered mitigations
-  without their own measurement.
+  partition) as their own dedicated experiments, each with its own
+  measurement, beyond the engineered mitigations already built for them.
 - Additional indicator types beyond DDoS, beyond the synthetic/sample data
   used to demonstrate the architecture generalizes.
 - Building real source and sink connectors for tools beyond FLOD and
@@ -97,4 +97,4 @@ the literature.
   disproportionate cost for this milestone.
 - A future sink connector layer that fans out to multiple sinks at once,
   a node's downstream CTI platform (or several) and its peers over the
-  federation layer, simultaneously, not one active sink at a time.
+  federation layer, all simultaneously.

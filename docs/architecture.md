@@ -40,8 +40,8 @@ time they appear.
 
 - **Local Action Layer.** Each node decides what to do with intelligence
   once it is believed: store it, alert someone, or block the source. This
-  reuses ideas from how FLOD separates "what was detected" from "what to
-  do about it," not any of FLOD's actual code.
+  reuses the design habit of keeping "what was detected" separate from
+  "what to do about it," a lesson carried over from FLOD.
 
 ## Extended workflow, with automated classification
 
@@ -86,7 +86,7 @@ flowchart TD
     G --> H[Signed Threat Observation]
     H --> I[Peer Validation Layer: reputation + quorum]
     I -->|Believed| J[Local Action / Policy Engine]
-    I -->|Rejected or held| K[Logged, not passed on]
+    I -->|Rejected or held| K[Logged only]
     J --> L[Report sent up to Sector-CERT / CERT-GH]
     G -.override log.-> M[(Labeled data for retraining the model)]
 ```
@@ -99,7 +99,7 @@ each node. None of it needs any particular downstream platform to exist,
 and nothing here loads into, or is loaded by, someone else's software.
 The pieces this project owns talk to whatever storage/browsing platform
 a node chooses the same way the Local Collection Layer talks to FLOD:
-through a small, swappable interface, not a hard dependency.
+through a small, swappable interface.
 
 - **Reading local data in** uses a *[source connector](glossary.md#source-connector)*.
   FLOD is the first one; a different kind of local detector, or none at
@@ -149,7 +149,7 @@ this project's own work, and anything built on it, clear of that
 separate license entirely. See [decision-record.md](decision-record.md)
 for the full reasoning.
 
-## Why the classifier is trained, not reused from elsewhere
+## Why the classifier is trained from scratch
 
 An existing open-source model called VLAI, trained to score the severity
 of software vulnerabilities from over 600,000 vulnerability descriptions,
@@ -170,21 +170,10 @@ The classifier itself is a
 *[gradient-boosted-trees](glossary.md#gradient-boosted-trees)*
 model over a small set of hand-picked measurements (packets per second,
 how many different source addresses are involved, and similar, for the
-DDoS category). This kind of model was chosen over a larger,
-from-scratch deep-learning model because the amount of training data
-available is realistic for it, it trains quickly enough to iterate on
-within the project's timeline, and it can show
+DDoS category). This kind of model fits the amount of training data
+actually available, trains quickly enough to iterate on within the
+project's timeline, and can show
 *[which measurements mattered most](glossary.md#feature-importance)*
 to a given decision, which is useful both for writing up results and for
 a human reviewer's confidence in why something was flagged.
 
-## Relationship to FLOD
-
-This project is not an extension of
-[FLOD](https://github.com/DevInBlack001/ddos-reduction-system), a
-separate project that detects and blocks one kind of flood of traffic at
-a single point in a network. This project is a multi-institution
-trust-and-sharing system instead. What carries over from FLOD is design
-experience only: specifically, the habit of keeping "what was detected"
-and "what to do about it" as separate, independent decisions. No code,
-no shared design, and no shared research question carry over.

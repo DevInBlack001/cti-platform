@@ -32,8 +32,7 @@ piece of information is treated as trustworthy.
 ### Reputation-weighted quorum
 
 A quorum where each node's vote counts more or less depending on how
-reliable that node has been in the past, rather than every node's vote
-counting the same.
+reliable that node has been in the past.
 
 ### Sybil attack
 
@@ -70,8 +69,8 @@ interface this project's own services use to talk to OpenCTI.
 
 An existing, open-source piece of software for storing and browsing
 threat intelligence, made by a company called Filigran. This project
-reuses it as its storage and display layer instead of building one from
-scratch.
+uses it as one of the storage and display platforms it tests against,
+alongside Wazuh.
 
 ### MISP
 
@@ -82,13 +81,14 @@ considered as an alternative to OpenCTI before OpenCTI was chosen.
 
 A published method for calculating how much to trust each participant in
 a peer-to-peer network, based on feedback from other participants. Used
-here as a reference point while designing this project's own reputation
-mechanism, not used directly.
+only as a reference point while designing this project's own reputation
+mechanism.
 
 ### Byzantine Fault Tolerance (BFT)
 
 A property of a system that keeps working correctly even if some
-participants are lying or broken, not just offline. Relevant if this
+participants are actively lying or broken, beyond merely being offline.
+Relevant if this
 project's quorum mechanism needs a formal proof of how many bad nodes it
 can tolerate.
 
@@ -112,8 +112,7 @@ a central directory.
 
 ### Mutual attestation
 
-Nodes checking each other's honesty by comparing notes, rather than
-trusting each one's self-reported status.
+Nodes checking each other's honesty by comparing notes directly.
 
 ### CERT-GH
 
@@ -150,8 +149,8 @@ A small, self-contained piece of code that knows how to read one
 particular source of local threat data (for example, FLOD's own
 database) and turn its raw records into the shared internal format this
 project uses everywhere else. Adding support for a new kind of threat
-source means writing a new connector, not changing the rest of the
-system.
+source means writing a new connector, without needing to change the rest
+of the system.
 
 ### Sink
 
