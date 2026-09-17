@@ -144,6 +144,29 @@ exact words it expected (`Fix`, not `Yes`), and one punctuation character
 console-typing script's character map, so the first attempt at typing
 `100%` silently became `100`.
 
+## A missing CPU flag looked like a crash in a completely different service
+
+Restarting the local test VM under a fresh QEMU process (after a session
+gap) left three containers stuck restarting on a loop: OpenCTI's own
+platform container, its `connector-opencti` container, and separately,
+MinIO. The first two looked like the actual problem, since OpenCTI was
+the thing being tested. MinIO's own logs told the real story: `Fatal
+glibc error: CPU does not support x86-64-v2`. The newer MinIO image had
+been built expecting a CPU instruction set QEMU's default emulated CPU
+model doesn't expose, unrelated to anything about OpenCTI's own
+configuration or the VM's disk, network, or memory. Once MinIO couldn't
+start, OpenCTI's own startup checks (which depend on object storage
+being reachable) failed too, and both looked like they were the
+problem.
+
+Fixed by relaunching the VM with `-cpu host`, passing through the real
+host CPU's full instruction set to the guest. Every container came up
+healthy on the next boot. The lesson matches an earlier one from this same project:
+when a fix doesn't fully resolve the symptom, or when the service that's
+actually crashing isn't the one that looks broken from the outside, the
+real cause is often sitting in a completely different component's own
+logs, not the one getting the most attention.
+
 ## What's likely still ahead
 
 Noted here so it's not a surprise later, not because any of it is a
