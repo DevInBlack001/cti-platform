@@ -15,6 +15,7 @@ MEMORY.md
 WORKLOAD.md
 STATUS.md
 REPORTS.md
+VERIFICATION_V2.md
 
 # Those same tools' own machine-specific settings and scratch state.
 .agy/
