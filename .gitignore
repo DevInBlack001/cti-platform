@@ -7,6 +7,12 @@ CLAUDE.md
 agy.md
 copilot.md
 
+# Cross-assistant working notes: shared conventions and the assistants'
+# own workload-split discussion. Kept local to this machine, for the
+# project owner only, never pushed to the shared remote.
+MEMORY.md
+WORKLOAD.md
+
 # Those same tools' own machine-specific settings and scratch state.
 .agy/
 .antigravity/
