@@ -126,6 +126,7 @@ for what's come up along the way.
 | [Roadmap](docs/ROADMAP.md) | The October to January build timeline, current phase, and what happens if the schedule slips |
 | [Glossary](docs/glossary.md) | Plain-language definitions for every technical term used across these docs |
 | [Lessons Learned](docs/lessons-learned.md) | Real obstacles hit during development, kept for what they generalize to |
+| [Memory](MEMORY.md) | Shared conventions and in-progress decisions for any AI assistant working on this repo |
 
 
 ## Authorship
