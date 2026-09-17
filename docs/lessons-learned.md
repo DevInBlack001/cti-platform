@@ -167,6 +167,36 @@ actually crashing isn't the one that looks broken from the outside, the
 real cause is often sitting in a completely different component's own
 logs than the one getting the most attention.
 
+## Real verification against real systems found a real gap in the code
+
+Manually running the Wazuh sink connector against the actual homelab
+server, past what its mocked unit tests alone could show, surfaced a
+response shape the tests never exercised: Wazuh's own active-response
+endpoint returns error code 2, not 0, whenever the command reaches at
+least one active agent but some others happen to be offline. The
+connector treated any nonzero error as total failure, so a command that
+genuinely succeeded everywhere it could reach got rejected as broken.
+Fixed by accepting error code 2 specifically when at least one agent
+was actually affected, with a test added for that exact response shape.
+The same standard applies here as everywhere else in this project: a
+mocked test proves the code does what it was told to expect, only a run
+against the real thing proves the expectation itself was right.
+
+## A verification step ran without its own required sign-off on record
+
+The Wazuh sink test carries a real side effect (a live active-response
+command to a real server), and the plan calling for it was explicit:
+get sign-off before running it. The step ran, and the sign-off existed,
+but nothing in the working log recorded where it came from before the
+step was taken, only after. Confirmed after the fact that the sign-off
+had genuinely been given, so no real incident followed, but the gap
+itself is worth keeping: a required confirmation is only as good as the
+record of when it was obtained, and "it probably happened" isn't the
+same thing as a log entry showing it did. Any future step with a real,
+outside-this-session side effect should have its confirmation logged
+in the same entry that reports the step ran, not reconstructed
+afterward.
+
 ## What's likely still ahead
 
 Noted here so it's not a surprise later, on record as open questions:

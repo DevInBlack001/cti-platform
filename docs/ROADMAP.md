@@ -51,6 +51,22 @@ signature independently verified. See
 [decision-record.md](decision-record.md) for the security findings this
 review caught and fixed before merge.
 
+**Phase 2: Sink and source connectors for OpenCTI and Wazuh built and verified (September 2026), run alongside Phase 1.**
+
+Adds a *[sink](glossary.md#sink)* connector for OpenCTI (a real
+`indicatorAdd` mutation against OpenCTI's own GraphQL schema), a source
+and a sink connector for Wazuh (reading real alerts from its indexer,
+and triggering its active-response mechanism), and a fan-out helper that
+writes a believed observation to every configured sink at once. Built
+the same way as Phase 1, then manually verified against the real
+systems each connector targets: the OpenCTI sink posted a real indicator
+to the local test VM's OpenCTI instance, the Wazuh source read real
+alerts from a homelab server's indexer, and the Wazuh sink dispatched a
+real active-response command to that same server (a documentation-only
+test address, run with the project owner's explicit confirmation). 86
+automated tests pass. See [lessons-learned.md](lessons-learned.md) for
+what that verification pass turned up.
+
 
 ## Planned
 
@@ -59,7 +75,7 @@ review caught and fixed before merge.
 | 1 | Oct 1-7 | Targeted literature scan (10-12 sources). Finalize research question and threat scenarios. | Research question, 1-page problem statement |
 | 2 | Oct 8-14 | Finalize architecture. Commit to the trust-checking mechanism (a *[reputation-weighted quorum](glossary.md#reputation-weighted-quorum)*). | Architecture doc + Threat Observation schema |
 | 3-4 | Oct 15-28 | *(Completed early, see Phase 1 above.)* Build Local Collection + Intelligence Extraction layers; wire in FLOD output as a real data source. | Working single-node pipeline: raw signal to signed observation |
-| 5-6 | Oct 29-Nov 11 | Build the Federation Layer: peer identity, discovery, signed message exchange over the network. Run alongside it: the sink connector layer (OpenCTI, Wazuh), and a Wazuh source connector alongside FLOD's. | 2 nodes exchanging signed observations |
+| 5-6 | Oct 29-Nov 11 | Build the Federation Layer: peer identity, discovery, signed message exchange over the network. *(The sink connector layer and Wazuh source connector completed early, see Phase 2 above.)* | 2 nodes exchanging signed observations |
 | 7-8 | Nov 12-25 | Build Peer Validation Layer v1 (naive fixed quorum, no reputation yet). Full pipeline running end to end across 4 nodes. | 4-node simulation, functioning end to end |
 | 9 | Nov 26-Dec 2 | Build Local Action / policy layer. Add reputation scoring on top of the naive quorum (v2). Build the minimalist per-node dashboard: peer network status, quorum decisions, and classifier performance, with a corner link to the node's own CTI platform for full browsing. Moved up from week 10, the earliest point real peer and quorum data exists to show. | Reputation-weighted validation; node dashboard live |
 | 10 | Dec 3-9 | Instrumentation: logging, metrics (propagation latency, false-accept/reject rate, bandwidth). | Measurement harness ready |
@@ -88,13 +104,15 @@ the literature.
   measurement, beyond the engineered mitigations already built for them.
 - Additional indicator types beyond DDoS, beyond the synthetic/sample data
   used to demonstrate the architecture generalizes.
-- Building real source and sink connectors for tools beyond FLOD and
-  OpenCTI, once an institution actually needs one. The
+- Building real source and sink connectors for tools beyond FLOD,
+  OpenCTI, and Wazuh, once an institution actually needs one. The
   brute-force scenario's own detector is real, live-simulated traffic in
   the VM testbed, the same pattern as DDoS; the phishing scenario stays
   sample data, generated fresh by a script every time it's needed, never
   a static fixture file, since full phishing infrastructure is
   disproportionate cost for this milestone.
-- A future sink connector layer that fans out to multiple sinks at once,
-  a node's downstream CTI platform (or several) and its peers over the
-  federation layer, all simultaneously.
+- Extending the sink fan-out helper to include peer nodes once the
+  Federation Layer exists, so a believed observation reaches a node's
+  platforms and its peers at the same time. The fan-out mechanism itself
+  is already built (Phase 2); only the peer-sink side of it is still
+  ahead.

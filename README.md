@@ -110,9 +110,13 @@ package reads FLOD's own database, turns each detection into a signed
 Threat Observation, and writes it to a local file, no network code yet.
 Verified against both a test fixture and a real copy of FLOD's live
 database (40,510 real detection rows, every resulting signature
-verified). See [docs/ROADMAP.md](docs/ROADMAP.md) for the build order
-and current phase, and [docs/lessons-learned.md](docs/lessons-learned.md)
-for what's come up along the way.
+verified). Sink connectors for OpenCTI and Wazuh, a Wazuh source
+connector, and the multi-sink fan-out helper are built and merged too,
+each manually verified against the real system it targets, 86 automated
+tests passing. See [docs/ROADMAP.md](docs/ROADMAP.md) for the build
+order and current phase, and
+[docs/lessons-learned.md](docs/lessons-learned.md) for what's come up
+along the way.
 
 
 ## Documentation
