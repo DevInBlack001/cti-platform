@@ -193,6 +193,21 @@ def test_allow_insecure_tls_true_when_explicitly_set(monkeypatch):
     assert resolve_allow_insecure_tls() is True
 
 
+def test_allow_insecure_tls_warns_when_enabled(monkeypatch):
+    monkeypatch.setenv("CTI_ALLOW_INSECURE_TLS", "true")
+
+    with pytest.warns(RuntimeWarning, match="CTI_ALLOW_INSECURE_TLS"):
+        resolve_allow_insecure_tls()
+
+
+def test_allow_insecure_tls_does_not_warn_when_disabled(monkeypatch, recwarn):
+    monkeypatch.delenv("CTI_ALLOW_INSECURE_TLS", raising=False)
+
+    resolve_allow_insecure_tls()
+
+    assert len(recwarn) == 0
+
+
 def test_ensure_private_directory_creates_it_at_0o700(tmp_path: Path):
     target = tmp_path / "nested" / "keys"
 
@@ -219,3 +234,18 @@ def test_ensure_private_directory_resets_looser_permissions(tmp_path: Path):
     ensure_private_directory(target)
 
     assert (target.stat().st_mode & 0o777) == 0o700
+
+
+def test_ensure_private_directory_rejects_a_symlinked_ancestor(tmp_path: Path):
+    """A symlink planted one level above the leaf still needs to be
+    caught: mkdir's own parents=True would otherwise build the rest of
+    the tree on top of it without any check ever looking at that
+    intermediate directory."""
+    real_parent = tmp_path / "real-parent"
+    real_parent.mkdir()
+    planted_parent = tmp_path / "planted-parent"
+    planted_parent.symlink_to(real_parent)
+    target = planted_parent / "keys"
+
+    with pytest.raises(RuntimeError):
+        ensure_private_directory(target)

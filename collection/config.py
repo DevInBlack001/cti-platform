@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import glob
 import os
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -160,12 +161,35 @@ def resolve_allow_insecure_tls() -> bool:
     """Reads CTI_ALLOW_INSECURE_TLS and returns True if set to 1, true, or yes.
 
     Used to disable TLS verification for development and testing only.
+    Every call that turns this on emits a runtime warning, so leaving
+    it set somewhere it was only meant to be temporary stays visible
+    on every run that reads it.
     """
-    return os.environ.get("CTI_ALLOW_INSECURE_TLS", "").strip().lower() in (
+    allowed = os.environ.get("CTI_ALLOW_INSECURE_TLS", "").strip().lower() in (
         "1",
         "true",
         "yes",
     )
+    if allowed:
+        warnings.warn(
+            "CTI_ALLOW_INSECURE_TLS is set: TLS certificate verification "
+            "is disabled for this connection. Meant for development "
+            "against a self-signed test server only.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+    return allowed
+
+
+def _nearest_existing_ancestor(path: Path) -> Path:
+    """Walks up from path until it finds a directory that already exists."""
+    current = path
+    while not current.exists():
+        parent = current.parent
+        if parent == current:
+            return current
+        current = parent
+    return current
 
 
 def ensure_private_directory(directory: Path) -> None:
@@ -173,14 +197,31 @@ def ensure_private_directory(directory: Path) -> None:
     observation state), safely.
 
     An environment variable like CTI_KEY_DIR can point anywhere, so
-    this verifies the directory on every call that uses it. It refuses
-    a leaf that turned out to be a symlink (which could
-    redirect writes somewhere unexpected) or one owned by a different
-    user (which could mean another account on a shared machine planted
-    it first), and it always resets permissions to 0o700, closing the
-    gap left by mkdir's own exist_ok flag, which silently accepts
-    whatever permissions a pre-existing directory already had.
+    this verifies the directory on every call that uses it. Before
+    creating anything, it checks the nearest ancestor that already
+    exists: a symlink or wrong ownership there would let mkdir's own
+    parents=True flag build the rest of the tree on top of something
+    an attacker planted, one level or more above the leaf this
+    function ultimately checks directly. It refuses a leaf that turned
+    out to be a symlink (which could redirect writes somewhere
+    unexpected) or one owned by a different user (which could mean
+    another account on a shared machine planted it first), and it
+    always resets permissions to 0o700, closing the gap left by
+    mkdir's own exist_ok flag, which silently accepts whatever
+    permissions a pre-existing directory already had. This checks the
+    leaf and its nearest existing ancestor; it does not walk the whole
+    chain back to the filesystem root, since several of those higher
+    directories (a home directory, a shared parent) are legitimately
+    owned by someone else or a system account.
     """
+    anchor = _nearest_existing_ancestor(directory)
+    if anchor.is_symlink():
+        raise RuntimeError(f"{anchor} is a symlink, refusing to build on it")
+    if anchor.exists() and anchor.stat().st_uid != os.getuid():
+        raise RuntimeError(
+            f"{anchor} is not owned by the current user, refusing to build on it"
+        )
+
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     if directory.is_symlink():
         raise RuntimeError(f"{directory} is a symlink, refusing to use it")
