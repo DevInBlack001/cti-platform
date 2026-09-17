@@ -19,11 +19,16 @@ for any unfamiliar term.
 3. Fill in every placeholder value in `.env`, generating real secrets as
    the comments in that file describe. Never commit `.env`, it's
    gitignored on purpose.
+4. Run `bash scripts/check-deploy-env.sh` and fix anything it flags.
+   `OPENCTI_PORT` binds to `127.0.0.1` by default (see
+   `OPENCTI_BIND_ADDRESS` in `.env.example`), so this stays reachable
+   only from the machine running it unless that default is deliberately
+   widened.
 
 ## Running it
 
 ```bash
-docker compose up -d
+bash scripts/check-deploy-env.sh && docker compose up -d
 ```
 
 First startup takes a few minutes while Elasticsearch and OpenCTI

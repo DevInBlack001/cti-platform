@@ -110,7 +110,13 @@ services:
       - PROVIDERS__LOCAL__STRATEGY=LocalStrategy
       - APP__HEALTH_ACCESS_KEY=${OPENCTI_HEALTHCHECK_ACCESS_KEY}
     ports:
-      - "${OPENCTI_PORT}:8080"
+      # Bound to loopback by default, so following this file as documented
+      # keeps OpenCTI reachable only from the machine running it. Set
+      # OPENCTI_BIND_ADDRESS in .env to reach it from elsewhere, e.g. this
+      # project's own test VM sets it to 0.0.0.0 since QEMU's usermode
+      # networking forwards to the guest's real interface rather than its
+      # loopback.
+      - "${OPENCTI_BIND_ADDRESS:-127.0.0.1}:${OPENCTI_PORT}:8080"
     depends_on:
       redis:
         condition: service_healthy
