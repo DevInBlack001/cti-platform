@@ -14,7 +14,7 @@ import os
 import sys
 from pathlib import Path
 
-from collection.config import resolve_sink_path
+from collection.config import ensure_private_directory, resolve_sink_path
 from collection.keys import load_or_create_node_key, node_fingerprint
 from collection.schema import build_and_sign
 from collection.sources.base import SourceConnector
@@ -38,7 +38,7 @@ def run(connector: SourceConnector, sink_path: Path | None = None) -> int:
     first_signal = next(signals, _NO_SIGNAL)
 
     destination = sink_path if sink_path is not None else resolve_sink_path().value
-    destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    ensure_private_directory(destination.parent)
 
     private_key = load_or_create_node_key()
     reporting_node_id = node_fingerprint(private_key)

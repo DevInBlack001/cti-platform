@@ -35,12 +35,25 @@ class FlodConnector:
     def iter_signals(self) -> Iterator[RawSignal]:
         """Yields every threat signal from the FLOD database.
 
-        Validates the database path for safety (not a symlink, readable, exists),
+        Validates the database path for safety (a real file, readable, no symlink),
         then queries the logs table for all rows. Filters to only detection
         verdicts and maps each row to a RawSignal with evidence from the traffic
         rate, entropy, and protocol fields.
         """
         self._check_path_is_safe_to_open()
+
+        # A second, atomic check right before opening: sqlite3.connect() takes
+        # a path, so the check above and the connect call below still touch
+        # the filesystem as two separate steps. Opening the configured path
+        # itself with O_NOFOLLOW here fails immediately if its final
+        # component became a symlink in the interval, shrinking that window
+        # down to the small gap between this close() and connect(). The same
+        # technique is already used for the signing key files in keys.py.
+        # This guards only the final path component, the same scope as the
+        # check above; a symlink planted higher up in the directory tree is
+        # a separate, broader problem this does not cover.
+        guard_fd = os.open(str(self._db_path), os.O_RDONLY | os.O_NOFOLLOW)
+        os.close(guard_fd)
 
         safe_path = quote(str(self._db_path.resolve()))
         connection = sqlite3.connect(f"file:{safe_path}?mode=ro", uri=True)

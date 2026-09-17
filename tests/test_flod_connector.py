@@ -58,6 +58,22 @@ def test_symlinked_database_path_is_rejected(tmp_path: Path, flod_db_path: Path)
         list(connector.iter_signals())
 
 
+def test_the_open_time_guard_also_rejects_a_symlink(
+    tmp_path: Path, flod_db_path: Path, monkeypatch
+):
+    """Proves the second, narrower symlink check right before opening the
+    database (independent of the earlier _check_path_is_safe_to_open pass)
+    genuinely rejects a symlink on its own, closing the gap between that
+    earlier check and the database actually being opened."""
+    symlink_path = tmp_path / "symlinked.db"
+    symlink_path.symlink_to(flod_db_path)
+    connector = FlodConnector(symlink_path)
+    monkeypatch.setattr(connector, "_check_path_is_safe_to_open", lambda: None)
+
+    with pytest.raises(OSError):
+        list(connector.iter_signals())
+
+
 def test_missing_database_raises_file_not_found(tmp_path: Path):
     connector = FlodConnector(tmp_path / "does_not_exist.db")
 

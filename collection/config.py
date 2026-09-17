@@ -166,3 +166,28 @@ def resolve_allow_insecure_tls() -> bool:
         "true",
         "yes",
     )
+
+
+def ensure_private_directory(directory: Path) -> None:
+    """Creates a directory for private, node-owned data (signing keys,
+    observation state), safely.
+
+    An environment variable like CTI_KEY_DIR can point anywhere, so
+    this verifies the directory on every call that uses it. It refuses
+    a leaf that turned out to be a symlink (which could
+    redirect writes somewhere unexpected) or one owned by a different
+    user (which could mean another account on a shared machine planted
+    it first), and it always resets permissions to 0o700, closing the
+    gap left by mkdir's own exist_ok flag, which silently accepts
+    whatever permissions a pre-existing directory already had.
+    """
+    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if directory.is_symlink():
+        raise RuntimeError(f"{directory} is a symlink, refusing to use it")
+    if not directory.is_dir():
+        raise RuntimeError(f"{directory} exists and is not a directory")
+    if directory.stat().st_uid != os.getuid():
+        raise RuntimeError(
+            f"{directory} is not owned by the current user, refusing to use it"
+        )
+    os.chmod(directory, 0o700)

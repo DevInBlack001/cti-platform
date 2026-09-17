@@ -14,7 +14,7 @@ from pathlib import Path
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from collection.config import resolve_key_dir
+from collection.config import ensure_private_directory, resolve_key_dir
 
 # Filenames for the node's Ed25519 key pair, stored in PEM format.
 PRIVATE_KEY_FILENAME = "node_private_key.pem"
@@ -30,7 +30,7 @@ def load_or_create_node_key(key_dir: Path | None = None) -> Ed25519PrivateKey:
     permissions and defaults to ~/.local/share/cti-platform/keys/.
     """
     directory = key_dir if key_dir is not None else resolve_key_dir().value
-    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    ensure_private_directory(directory)
     private_key_path = directory / PRIVATE_KEY_FILENAME
 
     if private_key_path.exists():

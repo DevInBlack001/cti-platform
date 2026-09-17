@@ -6,6 +6,7 @@ import pytest
 
 from collection.config import (
     ConfigNotFoundError,
+    ensure_private_directory,
     resolve_allow_insecure_tls,
     resolve_flod_db_path,
     resolve_key_dir,
@@ -190,3 +191,31 @@ def test_allow_insecure_tls_true_when_explicitly_set(monkeypatch):
     monkeypatch.setenv("CTI_ALLOW_INSECURE_TLS", "true")
 
     assert resolve_allow_insecure_tls() is True
+
+
+def test_ensure_private_directory_creates_it_at_0o700(tmp_path: Path):
+    target = tmp_path / "nested" / "keys"
+
+    ensure_private_directory(target)
+
+    assert target.is_dir()
+    assert (target.stat().st_mode & 0o777) == 0o700
+
+
+def test_ensure_private_directory_rejects_a_symlink(tmp_path: Path):
+    real_dir = tmp_path / "real"
+    real_dir.mkdir()
+    symlinked = tmp_path / "planted"
+    symlinked.symlink_to(real_dir)
+
+    with pytest.raises(RuntimeError):
+        ensure_private_directory(symlinked)
+
+
+def test_ensure_private_directory_resets_looser_permissions(tmp_path: Path):
+    target = tmp_path / "already-there"
+    target.mkdir(mode=0o755)
+
+    ensure_private_directory(target)
+
+    assert (target.stat().st_mode & 0o777) == 0o700

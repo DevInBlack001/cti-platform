@@ -18,6 +18,7 @@ from typing import Iterator
 import requests
 
 from collection.config import (
+    ensure_private_directory,
     resolve_allow_insecure_tls,
     resolve_wazuh_indexer_password,
     resolve_wazuh_indexer_url,
@@ -194,7 +195,7 @@ class WazuhConnector:
         than truncating an existing one, to avoid partial writes. Creates the
         parent directory if needed.
         """
-        self._state_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        ensure_private_directory(self._state_path.parent)
         if self._state_path.exists():
             self._state_path.unlink()
         fd = os.open(
