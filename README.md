@@ -58,9 +58,8 @@ whatever local data source or downstream platform a node chooses. For
 storing and browsing believed reports, this project has been testing
 against **[OpenCTI](docs/glossary.md#opencti)** (Community Edition), an
 external dependency it installs and talks to over its own
-*[GraphQL](docs/glossary.md#graphql)* interface, never forked or
-vendored in. Two original programs sit on top of this project's own
-layers:
+*[GraphQL](docs/glossary.md#graphql)* interface. Two original programs
+sit on top of this project's own layers:
 
 - The **trust-checking layer**, in **Rust**, for the speed and low-level
   control its networking and message-signing work benefits from.
@@ -106,9 +105,9 @@ of this project's limits are in
 
 ## Status
 
-Implementation is underway. OpenCTI (Community Edition, an external,
-unforked dependency, see [docs/architecture.md](docs/architecture.md))
-is deployed and running healthy in the local test VM (`deploy/`). The
+Implementation is underway. OpenCTI (Community Edition, see
+[docs/architecture.md](docs/architecture.md)) is deployed and running
+healthy in the local test VM (`deploy/`). The
 Local Collection Layer is built and tested: a `collection/` Python
 package reads FLOD's own database, turns each detection into a signed
 Threat Observation, and writes it to a local file, no network code yet.

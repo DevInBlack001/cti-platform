@@ -13,9 +13,9 @@ are defined in the [glossary](glossary.md) the first time they appear.
 - Research question scoped and finalized.
 - Five-layer core architecture defined, extended with the automated
   classification workflow.
-- Platform and language choices locked in: OpenCTI (an external,
-  unforked dependency) as the sink this project tests against, Rust for
-  the peer validation layer, Python for the classifier.
+- Platform and language choices locked in: OpenCTI as the sink this
+  project tests against, Rust for the peer validation layer, Python for
+  the classifier.
 - Evaluation design scoped down to something achievable in the timeline:
   two live tiers, 4 to 8 simulated nodes, three threat scenarios.
 - Ghana context researched and confirmed: CSA's model is hub-and-spoke,
@@ -28,14 +28,11 @@ are defined in the [glossary](glossary.md) the first time they appear.
 
 Not originally scheduled as its own step (see
 [decision-record.md](decision-record.md) for that gap and why it got
-closed here rather than left implicit). OpenCTI is deployed inside the
-local test VM, as an external, unforked Community Edition install, and
-running healthy end to end (platform, worker, and the standard
-connectors, all confirmed reachable over HTTP). See
-[lessons-learned.md](lessons-learned.md) for what it took to get there,
-and [decision-record.md](decision-record.md) for the later decision to
-drop an earlier fork of OpenCTI's repository once discovered to carry
-a separate, more restrictive license.
+closed here rather than left implicit). OpenCTI Community Edition is
+deployed inside the local test VM and running healthy end to end
+(platform, worker, and the standard connectors, all confirmed reachable
+over HTTP). See [lessons-learned.md](lessons-learned.md) for what it
+took to get there.
 
 **Phase 1: Local Collection Layer built and tested (September 2026), ahead of the original schedule.**
 

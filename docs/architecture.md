@@ -115,11 +115,8 @@ through a small, swappable interface, not a hard dependency.
   needs, its platform (or several) and its peers together, and every
   believed observation fans out to all of them at once.
 
-This is also why OpenCTI is not forked or vendored into this repository:
-it's an external, separately installed dependency, the same way a
-database would be, not something this project owns a copy of, modifies,
-or redistributes. Anyone running this system (including this project
-itself) installs standard OpenCTI Community Edition from
+Anyone running this system (including this project itself) installs
+standard OpenCTI Community Edition from
 [Filigran's own official channel](https://github.com/OpenCTI-Platform/opencti),
 the same way anyone would install any other piece of software this
 project depends on.
@@ -146,12 +143,11 @@ OpenCTI Community Edition is Apache 2.0. Its public repository also
 contains a separate, larger set of Enterprise Edition features under a
 different, much more restrictive license, gated behind an activation
 key that this project never sets, so those features stay dormant.
-Treating OpenCTI purely as an external, unforked dependency (installed
-by whoever runs this system, straight from Filigran's own official
-channel) keeps this project's own work, and anything built on it, clear
-of that separate license entirely. See
-[decision-record.md](decision-record.md) for the full reasoning behind
-dropping an earlier fork of OpenCTI once this was understood.
+Installing OpenCTI as an external dependency, the way whoever runs this
+system installs it straight from Filigran's own official channel, keeps
+this project's own work, and anything built on it, clear of that
+separate license entirely. See [decision-record.md](decision-record.md)
+for the full reasoning.
 
 ## Why the classifier is trained, not reused from elsewhere
 
