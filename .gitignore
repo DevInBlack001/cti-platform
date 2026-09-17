@@ -57,6 +57,7 @@ build/
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 .claude/worktrees/
+.copilot/
 
 # The local validation VM, converted from the VMware Fedora VM. Large binary
 # disk image, never belongs in git history.
