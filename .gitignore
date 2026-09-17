@@ -1,5 +1,10 @@
 # .gitignore
 
+# Local session handoff notes, never committed: progress state and next
+# steps between working sessions, may reference in-progress work not
+# ready to share.
+CLAUDE.md
+
 # Planning material and source documents this repo was seeded from.
 # Kept locally, never committed: raw feasibility/report drafts, PDFs, notes.
 attachments/
