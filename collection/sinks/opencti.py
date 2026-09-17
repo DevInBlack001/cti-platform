@@ -52,7 +52,14 @@ class OpenCtiSinkConnector:
         GraphQL-level error; an HTTP-level failure (a non-2xx response)
         raises whatever requests.raise_for_status() itself raises.
         """
-        escaped_value = observation.indicator_value.replace("'", "\\'")
+        # Escape order matters: a backslash must become \\ before a quote
+        # becomes \', or an indicator value ending in a backslash lets a
+        # crafted value break out of the quoted string and inject its own
+        # STIX pattern content. Escaping the backslash first keeps every
+        # inserted \' reliably read back as one escaped quote.
+        escaped_value = observation.indicator_value.replace("\\", "\\\\").replace(
+            "'", "\\'"
+        )
         pattern = f"[ipv4-addr:value = '{escaped_value}']"
         description = (
             f"Reported by node {observation.reporting_node_id} at "

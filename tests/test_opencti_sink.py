@@ -71,6 +71,67 @@ def test_send_escapes_a_single_quote_in_the_indicator_value():
     assert pattern == "[ipv4-addr:value = 'fake-value-with-a-\\'-quote']"
 
 
+def test_send_escapes_a_backslash_in_the_indicator_value():
+    connector = OpenCtiSinkConnector(url="http://localhost:8080/graphql", token="a-token")
+    observation = ThreatObservation(
+        observation_id="33333333-3333-3333-3333-333333333333",
+        reporting_node_id="node-abc123",
+        observed_at="2026-09-16T00:00:00+00:00",
+        indicator_type="ddos-flood",
+        indicator_value="fake-value-with-a-\\-backslash",
+        source_verdict="DDoS",
+        evidence={},
+        severity=None,
+        confidence=None,
+        signature="a" * 128,
+    )
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"data": {"indicatorAdd": {"id": "abc"}}}
+
+    with patch("collection.sinks.opencti.requests.post", return_value=mock_response) as mock_post:
+        connector.send(observation)
+
+    pattern = mock_post.call_args.kwargs["json"]["variables"]["input"]["pattern"]
+    assert pattern == "[ipv4-addr:value = 'fake-value-with-a-\\\\-backslash']"
+
+
+def test_a_trailing_backslash_cannot_break_out_of_the_quoted_pattern():
+    """A value ending in a backslash, escaped in the wrong order (quote
+    before backslash), would let the backslash the escaping just inserted
+    pair up with the value's own trailing backslash and close the string
+    one character early, letting whatever follows the injected payload
+    read as literal STIX pattern syntax."""
+    connector = OpenCtiSinkConnector(url="http://localhost:8080/graphql", token="a-token")
+    payload = "x\\'] or [ipv4-addr:value = '1.2.3.4"
+    observation = ThreatObservation(
+        observation_id="44444444-4444-4444-4444-444444444444",
+        reporting_node_id="node-abc123",
+        observed_at="2026-09-16T00:00:00+00:00",
+        indicator_type="ddos-flood",
+        indicator_value=payload,
+        source_verdict="DDoS",
+        evidence={},
+        severity=None,
+        confidence=None,
+        signature="a" * 128,
+    )
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"data": {"indicatorAdd": {"id": "abc"}}}
+
+    with patch("collection.sinks.opencti.requests.post", return_value=mock_response) as mock_post:
+        connector.send(observation)
+
+    pattern = mock_post.call_args.kwargs["json"]["variables"]["input"]["pattern"]
+    # Computed by hand, independent of the escaping code under test: the
+    # payload's own backslash becomes two backslashes, then each of its
+    # two quotes becomes a backslash-quote pair, keeping the whole
+    # payload inside the one string the surrounding template opens and
+    # closes.
+    assert pattern == (
+        "[ipv4-addr:value = 'x\\\\\\'] or [ipv4-addr:value = \\'1.2.3.4']"
+    )
+
+
 def test_send_raises_when_opencti_returns_graphql_errors():
     connector = OpenCtiSinkConnector(url="http://localhost:8080/graphql", token="a-token")
     observation = _sample_observation()
