@@ -1,4 +1,10 @@
-"""The Threat Observation format this project shares between nodes, and its signing."""
+"""Defines the Threat Observation schema and its Ed25519 signing protocol.
+
+Observations are the core unit of threat intelligence shared between collection
+nodes. Each one represents a single indicator (IP, domain, hash, etc.) matched
+against a source, signed with the reporting node's private key so downstream
+systems can verify their authenticity.
+"""
 
 from __future__ import annotations
 
@@ -18,6 +24,13 @@ from collection.sources.base import RawSignal
 
 @dataclass(frozen=True)
 class ThreatObservation:
+    """A signed threat intelligence observation shared between collection nodes.
+
+    Each observation represents a single indicator matched against a source, along
+    with the evidence supporting that match. The signature is an Ed25519 signature
+    over all fields except the signature itself, allowing downstream systems to
+    verify the observation's authenticity and integrity.
+    """
     observation_id: str
     reporting_node_id: str
     observed_at: str
@@ -30,6 +43,11 @@ class ThreatObservation:
     signature: str
 
     def to_json(self) -> str:
+        """Serializes this observation to newline-delimited JSON.
+
+        Produces a sorted JSON representation suitable for appending to an NDJSON file.
+        Rejects any non-finite field values (NaN or infinity) at serialization time.
+        """
         return json.dumps(asdict(self), sort_keys=True, allow_nan=False)
 
 
@@ -44,6 +62,12 @@ def _unsigned_payload(
     severity: str | None,
     confidence: float | None,
 ) -> bytes:
+    """Constructs the JSON bytes to be signed by the node's private key.
+
+    Used both to create the signature during build_and_sign and to verify it
+    during verify. The signature covers all observation fields to detect any
+    tampering or mutation.
+    """
     payload = {
         "observation_id": observation_id,
         "reporting_node_id": reporting_node_id,
@@ -61,6 +85,12 @@ def _unsigned_payload(
 def build_and_sign(
     signal: RawSignal, reporting_node_id: str, private_key: Ed25519PrivateKey
 ) -> ThreatObservation:
+    """Constructs a ThreatObservation from a raw signal and signs it.
+
+    Generates a unique observation ID, converts the signal's timestamp to ISO 8601
+    UTC format, and creates an Ed25519 signature over the observation's canonical
+    JSON representation. Severity and confidence are currently left empty.
+    """
     observation_id = str(uuid.uuid4())
     observed_at = datetime.fromtimestamp(signal.observed_at, tz=timezone.utc).isoformat()
 
@@ -92,6 +122,11 @@ def build_and_sign(
 
 
 def verify(observation: ThreatObservation, public_key: Ed25519PublicKey) -> bool:
+    """Verifies an observation's signature using its reporting node's public key.
+
+    Returns True if the signature is valid and the observation's data has not been
+    tampered with, False if the signature is invalid.
+    """
     payload = _unsigned_payload(
         observation.observation_id,
         observation.reporting_node_id,

@@ -6,9 +6,20 @@ import pytest
 
 from collection.config import (
     ConfigNotFoundError,
+    resolve_allow_insecure_tls,
     resolve_flod_db_path,
     resolve_key_dir,
+    resolve_opencti_token,
+    resolve_opencti_url,
     resolve_sink_path,
+    resolve_wazuh_api_password,
+    resolve_wazuh_api_url,
+    resolve_wazuh_api_user,
+    resolve_wazuh_indexer_password,
+    resolve_wazuh_indexer_url,
+    resolve_wazuh_indexer_user,
+    resolve_wazuh_min_rule_level,
+    resolve_wazuh_state_path,
 )
 
 
@@ -65,3 +76,117 @@ def test_key_dir_has_a_sensible_default(monkeypatch):
     resolved = resolve_key_dir()
 
     assert resolved.value == Path.home() / ".local" / "share" / "cti-platform" / "keys"
+
+
+def test_opencti_url_raises_clearly_when_unset(monkeypatch):
+    monkeypatch.delenv("CTI_OPENCTI_URL", raising=False)
+
+    with pytest.raises(ConfigNotFoundError):
+        resolve_opencti_url()
+
+
+def test_opencti_url_env_override_wins(monkeypatch):
+    monkeypatch.setenv("CTI_OPENCTI_URL", "http://localhost:8080/graphql")
+
+    assert resolve_opencti_url() == "http://localhost:8080/graphql"
+
+
+def test_opencti_token_raises_clearly_when_unset(monkeypatch):
+    monkeypatch.delenv("CTI_OPENCTI_TOKEN", raising=False)
+
+    with pytest.raises(ConfigNotFoundError):
+        resolve_opencti_token()
+
+
+def test_opencti_token_env_override_wins(monkeypatch):
+    monkeypatch.setenv("CTI_OPENCTI_TOKEN", "a-real-token")
+
+    assert resolve_opencti_token() == "a-real-token"
+
+
+def test_wazuh_indexer_url_raises_clearly_when_unset(monkeypatch):
+    monkeypatch.delenv("CTI_WAZUH_INDEXER_URL", raising=False)
+
+    with pytest.raises(ConfigNotFoundError):
+        resolve_wazuh_indexer_url()
+
+
+def test_wazuh_indexer_url_env_override_wins(monkeypatch):
+    monkeypatch.setenv("CTI_WAZUH_INDEXER_URL", "https://10.0.0.4:9200")
+
+    assert resolve_wazuh_indexer_url() == "https://10.0.0.4:9200"
+
+
+def test_wazuh_indexer_user_and_password_env_override_wins(monkeypatch):
+    monkeypatch.setenv("CTI_WAZUH_INDEXER_USER", "admin")
+    monkeypatch.setenv("CTI_WAZUH_INDEXER_PASSWORD", "a-real-password")
+
+    assert resolve_wazuh_indexer_user() == "admin"
+    assert resolve_wazuh_indexer_password() == "a-real-password"
+
+
+def test_wazuh_indexer_user_raises_clearly_when_unset(monkeypatch):
+    monkeypatch.delenv("CTI_WAZUH_INDEXER_USER", raising=False)
+
+    with pytest.raises(ConfigNotFoundError):
+        resolve_wazuh_indexer_user()
+
+
+def test_wazuh_api_url_and_credentials_env_override_wins(monkeypatch):
+    monkeypatch.setenv("CTI_WAZUH_API_URL", "https://10.0.0.4:55000")
+    monkeypatch.setenv("CTI_WAZUH_API_USER", "wazuh")
+    monkeypatch.setenv("CTI_WAZUH_API_PASSWORD", "a-real-password")
+
+    assert resolve_wazuh_api_url() == "https://10.0.0.4:55000"
+    assert resolve_wazuh_api_user() == "wazuh"
+    assert resolve_wazuh_api_password() == "a-real-password"
+
+
+def test_wazuh_api_url_raises_clearly_when_unset(monkeypatch):
+    monkeypatch.delenv("CTI_WAZUH_API_URL", raising=False)
+
+    with pytest.raises(ConfigNotFoundError):
+        resolve_wazuh_api_url()
+
+
+def test_wazuh_min_rule_level_env_override_wins(monkeypatch):
+    monkeypatch.setenv("CTI_WAZUH_MIN_RULE_LEVEL", "12")
+
+    assert resolve_wazuh_min_rule_level() == 12
+
+
+def test_wazuh_min_rule_level_has_a_sensible_default(monkeypatch):
+    monkeypatch.delenv("CTI_WAZUH_MIN_RULE_LEVEL", raising=False)
+
+    assert resolve_wazuh_min_rule_level() == 10
+
+
+def test_wazuh_state_path_env_override_wins(monkeypatch, tmp_path):
+    custom = tmp_path / "custom-state.json"
+    monkeypatch.setenv("CTI_WAZUH_STATE_PATH", str(custom))
+
+    resolved = resolve_wazuh_state_path()
+
+    assert resolved.value == custom
+
+
+def test_wazuh_state_path_has_a_sensible_default(monkeypatch):
+    monkeypatch.delenv("CTI_WAZUH_STATE_PATH", raising=False)
+
+    resolved = resolve_wazuh_state_path()
+
+    assert resolved.value == (
+        Path.home() / ".local" / "share" / "cti-platform" / "wazuh-state.json"
+    )
+
+
+def test_allow_insecure_tls_defaults_to_false(monkeypatch):
+    monkeypatch.delenv("CTI_ALLOW_INSECURE_TLS", raising=False)
+
+    assert resolve_allow_insecure_tls() is False
+
+
+def test_allow_insecure_tls_true_when_explicitly_set(monkeypatch):
+    monkeypatch.setenv("CTI_ALLOW_INSECURE_TLS", "true")
+
+    assert resolve_allow_insecure_tls() is True

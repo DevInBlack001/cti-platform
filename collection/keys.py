@@ -1,4 +1,9 @@
-"""Generates and loads this node's Ed25519 signing key pair."""
+"""Generates and loads this node's Ed25519 signing key pair.
+
+A node's Ed25519 key pair is its permanent identity: every Threat Observation
+produced is signed with the same key for as long as that key exists. This module
+handles creating the key pair on first use and loading it on every run afterward.
+"""
 
 from __future__ import annotations
 
@@ -11,12 +16,19 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from collection.config import resolve_key_dir
 
+# Filenames for the node's Ed25519 key pair, stored in PEM format.
 PRIVATE_KEY_FILENAME = "node_private_key.pem"
 PUBLIC_KEY_FILENAME = "node_public_key.pem"
 
 
 def load_or_create_node_key(key_dir: Path | None = None) -> Ed25519PrivateKey:
-    """Returns this node's private key, generating one on first use."""
+    """Loads this node's private key if one exists, otherwise generates a fresh one.
+
+    On first use, generates an Ed25519 key pair and stores both the private
+    (0o600) and public (0o644) keys in PEM format. On subsequent calls, loads
+    the existing private key. The key directory itself is created with 0o700
+    permissions and defaults to ~/.local/share/cti-platform/keys/.
+    """
     directory = key_dir if key_dir is not None else resolve_key_dir().value
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     private_key_path = directory / PRIVATE_KEY_FILENAME
@@ -62,7 +74,12 @@ def load_or_create_node_key(key_dir: Path | None = None) -> Ed25519PrivateKey:
 
 
 def node_fingerprint(private_key: Ed25519PrivateKey) -> str:
-    """A short, stable identifier for this node, derived from its public key."""
+    """Returns a short, stable identifier for this node.
+
+    Derives a 16-character hex fingerprint from the SHA256 hash of the node's
+    public key. The fingerprint is stable across runs and serves as the
+    reporting_node_id in Threat Observations.
+    """
     public_bytes = private_key.public_key().public_bytes(
         encoding=serialization.Encoding.Raw,
         format=serialization.PublicFormat.Raw,
