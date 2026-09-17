@@ -102,8 +102,13 @@ the literature.
   model (compromised peer, replay attack, intelligence flooding, network
   partition) as their own dedicated experiments, each with its own
   measurement, beyond the engineered mitigations already built for them.
-- Additional indicator types beyond DDoS, beyond the synthetic/sample data
-  used to demonstrate the architecture generalizes.
+- Extending the classifier beyond DDoS. Its training data today comes
+  entirely from FLOD's real detections, the first local detector this
+  project fully built; retraining it on brute-force's own real,
+  live-simulated traffic, and on phishing's generated sample data, once
+  those categories have enough labeled signals of their own, is the
+  planned path to a classifier that covers every scenario this project
+  detects.
 - Building real source and sink connectors for tools beyond FLOD,
   OpenCTI, and Wazuh, once an institution actually needs one. The
   brute-force scenario's own detector is real, live-simulated traffic in
